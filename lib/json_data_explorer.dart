@@ -1,97 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class JsonDataExplorer extends StatelessWidget {
   final List<FlatJsonNodeModelState> nodes;
+  final ItemScrollController? itemScrollController;
+  final ItemPositionsListener? itemPositionsListener;
 
-  const JsonDataExplorer({Key? key, required this.nodes}) : super(key: key);
+  const JsonDataExplorer({
+    Key? key,
+    required this.nodes,
+    this.itemScrollController,
+    this.itemPositionsListener,
+  }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) => ListView.builder(
-        padding: const EdgeInsets.all(16),
+  Widget build(BuildContext context) => ScrollablePositionedList.builder(
         itemCount: nodes.length,
+        itemScrollController: itemScrollController,
+        itemPositionsListener: itemPositionsListener,
         itemBuilder: (context, index) => _JsonAttribute(
-          name: nodes[index].key,
-          value: nodes[index].value,
-          treeDepth: nodes[index].treeDepth,
+          node: nodes[index],
         ),
       );
-}
-
-/// Testing a list view, bad performance
-class JsonDataViewerListView extends StatelessWidget {
-  final dynamic content;
-
-  const JsonDataViewerListView({Key? key, required this.content})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    if (content == null) {
-      return const Text('{}');
-    } else {
-      return ListView(
-        children: _buildNodes(object: content),
-      );
-    }
-  }
-
-  List<Widget> _buildNodes({
-    required Map<String, dynamic> object,
-    int treeDepth = 0,
-  }) {
-    final widgets = <Widget>[];
-    object.forEach((key, value) {
-      widgets.add(
-        _JsonAttribute(
-          name: key,
-          value: value,
-          treeDepth: treeDepth,
-        ),
-      );
-
-      if (value is Map) {
-        widgets.addAll(
-          _buildNodes(
-            object: value as Map<String, dynamic>,
-            treeDepth: treeDepth + 1,
-          ),
-        );
-      } else if (value is List) {
-        for (int i = 0; i < value.length; i++) {
-          widgets.addAll(
-            _buildNodes(
-              object: value[i],
-              treeDepth: treeDepth + 1,
-            ),
-          );
-        }
-      }
-    });
-    return widgets;
-  }
 }
 
 class _JsonAttribute extends StatelessWidget {
-  final String name;
-  final dynamic value;
-  final int treeDepth;
+  final FlatJsonNodeModelState node;
   final double indentationPadding;
 
   const _JsonAttribute({
     Key? key,
-    required this.name,
-    required this.value,
-    required this.treeDepth,
+    required this.node,
     this.indentationPadding = 16.0,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(left: treeDepth * indentationPadding),
+      padding: EdgeInsets.only(left: node.treeDepth * indentationPadding),
       child: Text.rich(
         TextSpan(
-          text: name,
+          text: node.key,
           style: Theme.of(context).textTheme.subtitle1!.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -113,18 +62,18 @@ class _JsonAttribute extends StatelessWidget {
   }
 
   String _valueDisplay() {
-    if (value is Map) {
-      return '{${(value as Map).length}}';
-    } else if (value is List) {
-      return '[${(value as List).length}]';
+    if (node.value is Map) {
+      return '{${(node.value as Map).length}}';
+    } else if (node.value is List) {
+      return '[${(node.value as List).length}]';
     }
-    return value.toString();
+    return node.value.toString();
   }
 
   Color _valueColor() {
-    if (value is Map) {
+    if (node.value is Map) {
       return Colors.grey;
-    } else if (value is List) {
+    } else if (node.value is List) {
       return Colors.grey;
     }
     return Colors.redAccent;
