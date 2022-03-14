@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
+import 'data_explorer_store.dart';
 import 'json_data_explorer.dart';
 
 void main() => runApp(const MyApp());
@@ -74,7 +76,16 @@ class MyHomePage extends StatelessWidget {
           const _OpenJsonButton(
             title: 'Reddit r/all',
             url: 'https://www.reddit.com/r/all.json',
-            padding: EdgeInsets.only(bottom: 32.0),
+          ),
+          Text(
+            'Exploding JSON',
+            style: Theme.of(context).textTheme.headline6,
+          ),
+          const _OpenJsonButton(
+            title: '25MB GitHub Json',
+            url:
+                'https://raw.githubusercontent.com/json-iterator/test-data/master/large-file.json',
+            padding: EdgeInsets.only(top: 8.0, bottom: 32.0),
           ),
           Text(
             'More datasets at https://awesomeopensource.com/project/jdorfman/awesome-json-datasets',
@@ -102,9 +113,10 @@ class DataExplorerPage extends StatefulWidget {
 
 class _DataExplorerPageState extends State<DataExplorerPage> {
   dynamic jsonContent;
-  List<FlatJsonNodeModelState> nodes = [];
   final itemScrollController = ItemScrollController();
   final searchController = TextEditingController();
+
+  final DataExplorerStore store = DataExplorerStore();
 
   @override
   void initState() {
@@ -120,27 +132,33 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
       ),
       body: SafeArea(
         minimum: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Search:'),
-            TextField(
-              controller: searchController,
+        child: ChangeNotifierProvider.value(
+          value: store,
+          child: ValueListenableBuilder(
+            valueListenable: store,
+            builder: (context, value, child) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Search:'),
+                TextField(
+                  controller: searchController,
+                ),
+                const SizedBox(
+                  height: 16.0,
+                ),
+                Expanded(
+                  child: JsonDataExplorer(
+                    nodes: store.value,
+                    itemScrollController: itemScrollController,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(
-              height: 16.0,
-            ),
-            Expanded(
-              child: JsonDataExplorer(
-                nodes: nodes,
-                itemScrollController: itemScrollController,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.map),
+        child: const Icon(Icons.search),
         onPressed: _search,
       ),
     );
@@ -151,19 +169,14 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
     final data = await http.read(Uri.parse(url));
     print('Done!');
     var decoded = json.decode(data);
-    final builtNodes = buildJsonNodes(decoded);
-    print('Built ${builtNodes.length} nodes.');
-    setState(() {
-      nodes = builtNodes;
-      jsonContent = decoded;
-    });
+    store.buildNodes(decoded);
   }
 
   Future _search() async {
     final searchTerm = searchController.text;
     int foundAt = 0;
-    for (int i = 0; i < nodes.length; i++) {
-      final node = nodes[i];
+    for (int i = 0; i < store.value.length; i++) {
+      final node = store.value[i];
       if (node.key.contains(searchTerm)) {
         foundAt = i;
         break;

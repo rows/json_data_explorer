@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+
+import 'data_explorer_store.dart';
 
 class JsonDataExplorer extends StatelessWidget {
   final List<FlatJsonNodeModelState> nodes;
@@ -16,10 +19,29 @@ class JsonDataExplorer extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ScrollablePositionedList.builder(
         itemCount: nodes.length,
+        //itemExtent: 20,
         itemScrollController: itemScrollController,
         itemPositionsListener: itemPositionsListener,
-        itemBuilder: (context, index) => _JsonAttribute(
-          node: nodes[index],
+        // minCacheExtent: 10000000,
+        // (1440 / MediaQuery.of(context).size.height) * (30) * nodes.length,
+        // itemBuilder: (context, index) => SizedBox(
+        //   height: 50,
+        //   child: Text(nodes[index].key),
+        // ),
+        itemBuilder: (context, index) => AnimatedBuilder(
+          animation: nodes[index],
+          builder: (BuildContext context, Widget? child) => DecoratedBox(
+            decoration: BoxDecoration(
+              // TODO: Configurable color.
+              color: nodes[index].isHighlighted
+                  ? Colors.deepPurpleAccent.withOpacity(0.2)
+                  : null,
+            ),
+            child: child,
+          ),
+          child: _JsonAttribute(
+            node: nodes[index],
+          ),
         ),
       );
 }
@@ -36,137 +58,84 @@ class _JsonAttribute extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(left: node.treeDepth * indentationPadding),
-      child: Text.rich(
-        TextSpan(
-          text: node.key,
-          style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-          children: [
-            const TextSpan(
-              text: ' ',
-            ),
-            TextSpan(
-              text: _valueDisplay(),
-              style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                    color: _valueColor(),
+    final padding = node.isRoot && node.treeDepth > 1
+        ? (node.treeDepth - 1) * indentationPadding
+        : node.treeDepth * indentationPadding;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (event) => node.highlight(true),
+      onExit: (event) => node.highlight(false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _onTap(context),
+        child: AnimatedBuilder(
+          animation: node,
+          builder: (BuildContext context, Widget? child) => Padding(
+            padding: EdgeInsets.only(left: padding),
+            child: Row(
+              children: [
+                if (node.isRoot)
+                  SizedBox(
+                    width: indentationPadding,
+                    // TODO: Configurable icons.
+                    child: node.isCollapsed
+                        ? const Icon(Icons.arrow_right)
+                        : const Icon(Icons.arrow_drop_down),
                   ),
+                Text.rich(
+                  TextSpan(
+                    text: node.key,
+                    style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                    children: [
+                      const TextSpan(
+                        text: ' ',
+                      ),
+                      TextSpan(
+                        text: _valueDisplay(),
+                        style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                              color: _valueColor(),
+                            ),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.start,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-        textAlign: TextAlign.start,
       ),
     );
   }
 
+  Future _onTap(BuildContext context) async {
+    final dataExplorerStore = Provider.of<DataExplorerStore>(
+      context,
+      listen: false,
+    );
+    if (node.isCollapsed) {
+      dataExplorerStore.expandNode(node);
+    } else {
+      dataExplorerStore.collapseNode(node);
+    }
+  }
+
   String _valueDisplay() {
-    if (node.value is Map) {
-      return '{${(node.value as Map).length}}';
-    } else if (node.value is List) {
-      return '[${(node.value as List).length}]';
+    if (node.isClass) {
+      return '{${(node.childrenCount())}}';
+    } else if (node.isArray) {
+      return '[${node.childrenCount()}]';
     }
     return node.value.toString();
   }
 
   Color _valueColor() {
-    if (node.value is Map) {
-      return Colors.grey;
-    } else if (node.value is List) {
+    if (node.isRoot) {
       return Colors.grey;
     }
     return Colors.redAccent;
   }
 }
-
-class FlatJsonNodeModelState {
-  final String key;
-  final dynamic value;
-  final int treeDepth;
-
-  FlatJsonNodeModelState({
-    required this.treeDepth,
-    required this.key,
-    required this.value,
-  });
-
-  bool get isArray => value is List;
-
-  bool get isClass => value is Map;
-}
-
-/// Test cases:
-///   - Map
-///   - Array of objects
-///   - Array of types
-List<FlatJsonNodeModelState> buildJsonNodes(
-  dynamic object,
-) {
-  if (object is Map<String, dynamic>) {
-    return _buildMapNodes(object: object);
-  }
-  return _buildArrayNodes(
-    object: object as List,
-    treeDepth: -1,
-  );
-}
-
-List<FlatJsonNodeModelState> _buildMapNodes({
-  required Map<String, dynamic> object,
-  int treeDepth = 0,
-}) {
-  final widgets = <FlatJsonNodeModelState>[];
-  object.forEach((key, value) {
-    widgets.add(
-      FlatJsonNodeModelState(
-        key: key,
-        value: value,
-        treeDepth: treeDepth,
-      ),
-    );
-
-    if (value is Map) {
-      widgets.addAll(
-        _buildMapNodes(
-          object: value as Map<String, dynamic>,
-          treeDepth: treeDepth + 1,
-        ),
-      );
-    } else if (value is List) {
-      widgets.addAll(_buildArrayNodes(
-        object: value,
-        treeDepth: treeDepth,
-      ));
-    }
-  });
-  return widgets;
-}
-
-List<FlatJsonNodeModelState> _buildArrayNodes({
-  required List<dynamic> object,
-  int treeDepth = 0,
-}) {
-  final widgets = <FlatJsonNodeModelState>[];
-  for (int i = 0; i < object.length; i++) {
-    final arrayValue = object[i];
-    widgets.add(
-      FlatJsonNodeModelState(
-        key: i.toString(),
-        value: arrayValue,
-        treeDepth: treeDepth + 1,
-      ),
-    );
-    if (arrayValue is Map<String, dynamic>) {
-      widgets.addAll(
-        _buildMapNodes(
-          object: arrayValue,
-          treeDepth: treeDepth + 2,
-        ),
-      );
-    }
-  }
-  return widgets;
-}
-
-bool _hasBranches(dynamic object) => object is Map || object is List;
