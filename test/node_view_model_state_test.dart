@@ -4,6 +4,11 @@ import 'package:data_explorer/data_explorer_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  List<FlatJsonNodeModelState> _buildList(String jsonString) {
+    final builtNodes = buildViewModelNodes(json.decode(jsonString));
+    return flatten(builtNodes);
+  }
+
   group('Classes', () {
     test('builds a flat list from a simple json', () async {
       const jsonString = '''
@@ -14,7 +19,7 @@ void main() {
 }
 ''';
 
-      final viewModels = buildJsonNodes(json.decode(jsonString));
+      final viewModels = _buildList(jsonString);
       expect(viewModels, hasLength(3));
       expect(viewModels[0].key, 'firstField');
       expect(viewModels[0].value, 'firstField');
@@ -48,14 +53,14 @@ void main() {
 }
 ''';
 
-      final viewModels = buildJsonNodes(json.decode(jsonString));
+      final viewModels = _buildList(jsonString);
       expect(viewModels, hasLength(8));
       expect(viewModels[0].key, 'firstClass');
       expect(viewModels[0].value, isNotNull);
       expect(viewModels[0].isRoot, isTrue);
       expect(viewModels[0].isClass, isTrue);
       expect(viewModels[0].isArray, isFalse);
-      expect(viewModels[0].childrenCount(), 3);
+      expect(viewModels[0].childrenCount, 3);
       expect(viewModels[0].treeDepth, 0);
 
       expect(viewModels[1].key, 'firstField');
@@ -78,7 +83,7 @@ void main() {
       expect(viewModels[4].isRoot, isTrue);
       expect(viewModels[4].isClass, isTrue);
       expect(viewModels[4].isArray, isFalse);
-      expect(viewModels[4].childrenCount(), 3);
+      expect(viewModels[4].childrenCount, 3);
       expect(viewModels[4].treeDepth, 0);
 
       expect(viewModels[5].key, 'firstField');
@@ -118,14 +123,14 @@ void main() {
 }
 ''';
 
-      final viewModels = buildJsonNodes(json.decode(jsonString));
+      final viewModels = _buildList(jsonString);
       expect(viewModels, hasLength(10));
       expect(viewModels[0].key, 'firstClass');
       expect(viewModels[0].value, isNotNull);
       expect(viewModels[0].isRoot, isTrue);
       expect(viewModels[0].isClass, isTrue);
       expect(viewModels[0].isArray, isFalse);
-      //expect(viewModels[0].childrenCount(), 3);
+      expect(viewModels[0].childrenCount, 3);
       expect(viewModels[0].treeDepth, 0);
 
       expect(viewModels[1].key, 'firstField');
@@ -138,7 +143,7 @@ void main() {
       expect(viewModels[2].isRoot, isTrue);
       expect(viewModels[2].isClass, isTrue);
       expect(viewModels[2].isArray, isFalse);
-      expect(viewModels[2].childrenCount(), 2);
+      expect(viewModels[2].childrenCount, 2);
       expect(viewModels[2].treeDepth, 1);
 
       expect(viewModels[3].key, 'firstField');
@@ -151,7 +156,7 @@ void main() {
       expect(viewModels[4].isRoot, isTrue);
       expect(viewModels[4].isClass, isTrue);
       expect(viewModels[4].isArray, isFalse);
-      expect(viewModels[4].childrenCount(), 1);
+      expect(viewModels[4].childrenCount, 1);
       expect(viewModels[4].treeDepth, 2);
 
       expect(viewModels[5].key, 'firstField');
@@ -164,7 +169,7 @@ void main() {
       expect(viewModels[6].isRoot, isTrue);
       expect(viewModels[6].isClass, isTrue);
       expect(viewModels[6].isArray, isFalse);
-      expect(viewModels[6].childrenCount(), 2);
+      expect(viewModels[6].childrenCount, 2);
       expect(viewModels[6].treeDepth, 1);
 
       expect(viewModels[7].key, 'firstField');
@@ -177,7 +182,7 @@ void main() {
       expect(viewModels[8].isRoot, isTrue);
       expect(viewModels[8].isClass, isTrue);
       expect(viewModels[8].isArray, isFalse);
-      expect(viewModels[8].childrenCount(), 1);
+      expect(viewModels[8].childrenCount, 1);
       expect(viewModels[8].treeDepth, 2);
 
       expect(viewModels[9].key, 'firstField');
@@ -191,17 +196,25 @@ void main() {
     test('builds a flat list from json array', () async {
       const jsonString = '[1, 2]';
 
-      final viewModels = buildJsonNodes(json.decode(jsonString));
-      expect(viewModels, hasLength(2));
-      expect(viewModels[0].key, '0');
-      expect(viewModels[0].value, 1);
-      expect(viewModels[0].isRoot, isFalse);
+      final viewModels = _buildList(jsonString);
+      expect(viewModels, hasLength(3));
+
+      expect(viewModels[0].key, 'data');
+      expect(viewModels[0].value, isNotNull);
+      expect(viewModels[0].isRoot, isTrue);
+      expect(viewModels[0].isArray, isTrue);
+      expect(viewModels[0].childrenCount, 2);
       expect(viewModels[0].treeDepth, 0);
 
-      expect(viewModels[1].key, '1');
-      expect(viewModels[1].value, 2);
+      expect(viewModels[1].key, '0');
+      expect(viewModels[1].value, 1);
       expect(viewModels[1].isRoot, isFalse);
-      expect(viewModels[1].treeDepth, 0);
+      expect(viewModels[1].treeDepth, 1);
+
+      expect(viewModels[2].key, '1');
+      expect(viewModels[2].value, 2);
+      expect(viewModels[2].isRoot, isFalse);
+      expect(viewModels[2].treeDepth, 1);
     });
 
     test('builds a flat list from array of classes', () async {
@@ -216,33 +229,40 @@ void main() {
 ]
       ''';
 
-      final viewModels = buildJsonNodes(json.decode(jsonString));
-      expect(viewModels, hasLength(4));
-      expect(viewModels[0].key, '0');
+      final viewModels = _buildList(jsonString);
+      expect(viewModels, hasLength(5));
+      expect(viewModels[0].key, 'data');
       expect(viewModels[0].value, isNotNull);
       expect(viewModels[0].isRoot, isTrue);
-      expect(viewModels[0].isClass, isTrue);
-      expect(viewModels[0].isArray, isFalse);
-      expect(viewModels[0].childrenCount(), 1);
+      expect(viewModels[0].isArray, isTrue);
+      expect(viewModels[0].childrenCount, 2);
       expect(viewModels[0].treeDepth, 0);
 
-      expect(viewModels[1].key, '0.firstField');
+      expect(viewModels[1].key, '0');
       expect(viewModels[1].value, isNotNull);
-      expect(viewModels[1].isRoot, isFalse);
+      expect(viewModels[1].isRoot, isTrue);
+      expect(viewModels[1].isClass, isTrue);
+      expect(viewModels[1].isArray, isFalse);
+      expect(viewModels[1].childrenCount, 1);
       expect(viewModels[1].treeDepth, 1);
 
-      expect(viewModels[2].key, '1');
+      expect(viewModels[2].key, '0.firstField');
       expect(viewModels[2].value, isNotNull);
-      expect(viewModels[2].isRoot, isTrue);
-      expect(viewModels[2].isClass, isTrue);
-      expect(viewModels[2].isArray, isFalse);
-      expect(viewModels[2].childrenCount(), 1);
-      expect(viewModels[2].treeDepth, 0);
+      expect(viewModels[2].isRoot, isFalse);
+      expect(viewModels[2].treeDepth, 2);
 
-      expect(viewModels[3].key, '1.firstField');
+      expect(viewModels[3].key, '1');
       expect(viewModels[3].value, isNotNull);
-      expect(viewModels[3].isRoot, isFalse);
+      expect(viewModels[3].isRoot, isTrue);
+      expect(viewModels[3].isClass, isTrue);
+      expect(viewModels[3].isArray, isFalse);
+      expect(viewModels[3].childrenCount, 1);
       expect(viewModels[3].treeDepth, 1);
+
+      expect(viewModels[4].key, '1.firstField');
+      expect(viewModels[4].value, isNotNull);
+      expect(viewModels[4].isRoot, isFalse);
+      expect(viewModels[4].treeDepth, 2);
     });
 
     test('builds a flat list from class with nested arrays', () async {
@@ -265,14 +285,14 @@ void main() {
 }
       ''';
 
-      final viewModels = buildJsonNodes(json.decode(jsonString));
+      final viewModels = _buildList(jsonString);
       expect(viewModels, hasLength(10));
       expect(viewModels[0].key, 'firstClass');
       expect(viewModels[0].value, isNotNull);
       expect(viewModels[0].isRoot, isTrue);
       expect(viewModels[0].isClass, isTrue);
       expect(viewModels[0].isArray, isFalse);
-      expect(viewModels[0].childrenCount(), 2);
+      expect(viewModels[0].childrenCount, 2);
       expect(viewModels[0].treeDepth, 0);
 
       expect(viewModels[1].key, 'firstClass.firstField');
@@ -284,7 +304,7 @@ void main() {
       expect(viewModels[2].value, isNotNull);
       expect(viewModels[2].isRoot, isTrue);
       expect(viewModels[2].isArray, isTrue);
-      expect(viewModels[2].childrenCount(), 2);
+      expect(viewModels[2].childrenCount, 2);
       expect(viewModels[2].treeDepth, 1);
 
       expect(viewModels[3].key, '0');
@@ -302,7 +322,7 @@ void main() {
       expect(viewModels[5].isRoot, isTrue);
       expect(viewModels[5].isClass, isTrue);
       expect(viewModels[5].isArray, isFalse);
-      expect(viewModels[5].childrenCount(), 2);
+      expect(viewModels[5].childrenCount, 2);
       expect(viewModels[5].treeDepth, 0);
 
       expect(viewModels[6].key, 'secondClass.firstField');
@@ -314,7 +334,7 @@ void main() {
       expect(viewModels[7].value, isNotNull);
       expect(viewModels[7].isRoot, isTrue);
       expect(viewModels[7].isArray, isTrue);
-      expect(viewModels[7].childrenCount(), 2);
+      expect(viewModels[7].childrenCount, 2);
       expect(viewModels[7].treeDepth, 1);
 
       expect(viewModels[8].key, '0');

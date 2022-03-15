@@ -125,9 +125,9 @@ class _JsonAttribute extends StatelessWidget {
 
   String _valueDisplay() {
     if (node.isClass) {
-      return '{${(node.childrenCount())}}';
+      return '{${(node.childrenCount)}}';
     } else if (node.isArray) {
-      return '[${node.childrenCount()}]';
+      return '[${node.childrenCount}]';
     }
     return node.value.toString();
   }
