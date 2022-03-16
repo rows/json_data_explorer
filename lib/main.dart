@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import 'data_explorer_store.dart';
 import 'json_data_explorer.dart';
@@ -112,10 +111,7 @@ class DataExplorerPage extends StatefulWidget {
 }
 
 class _DataExplorerPageState extends State<DataExplorerPage> {
-  dynamic jsonContent;
-  final itemScrollController = ItemScrollController();
   final searchController = TextEditingController();
-
   final DataExplorerStore store = DataExplorerStore();
 
   @override
@@ -139,9 +135,24 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
             builder: (context, value, child) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Search:'),
-                TextField(
-                  controller: searchController,
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: searchController,
+                        onChanged: (term) => store.search(term),
+                        maxLines: 1,
+                        decoration: const InputDecoration(
+                          hintText: 'Search',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    if (store.searchResults.isNotEmpty)
+                      Text('${store.searchResults.length} Results'),
+                  ],
                 ),
                 const SizedBox(
                   height: 16.0,
@@ -167,17 +178,13 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                 Expanded(
                   child: JsonDataExplorer(
                     nodes: store.value,
-                    itemScrollController: itemScrollController,
+                    itemScrollController: store.itemScrollController,
                   ),
                 ),
               ],
             ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.search),
-        onPressed: _search,
       ),
     );
   }
@@ -188,31 +195,6 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
     print('Done!');
     var decoded = json.decode(data);
     store.buildNodes(decoded);
-  }
-
-  Future _search() async {
-    final searchTerm = searchController.text;
-    int foundAt = 0;
-    for (int i = 0; i < store.value.length; i++) {
-      final node = store.value[i];
-      if (node.key.contains(searchTerm)) {
-        foundAt = i;
-        break;
-      }
-      if (!node.isArray && !node.isArray) {
-        if (node.value.toString().contains(searchTerm)) {
-          foundAt = i;
-          break;
-        }
-      }
-    }
-
-    itemScrollController.scrollTo(
-      index: foundAt,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOutCubic,
-    );
-    searchController.text = '';
   }
 
   @override

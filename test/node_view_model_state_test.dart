@@ -5,7 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   List<NodeViewModelState> _buildList(String jsonString) {
-    final builtNodes = buildViewModelNodes(json.decode(jsonString));
+    final builtNodes = buildViewModelNodes(
+      json.decode(jsonString),
+      isAllCollapsed: false,
+    );
     return flatten(builtNodes);
   }
 

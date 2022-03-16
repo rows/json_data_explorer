@@ -19,15 +19,8 @@ class JsonDataExplorer extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ScrollablePositionedList.builder(
         itemCount: nodes.length,
-        //itemExtent: 20,
         itemScrollController: itemScrollController,
         itemPositionsListener: itemPositionsListener,
-        // minCacheExtent: 10000000,
-        // (1440 / MediaQuery.of(context).size.height) * (30) * nodes.length,
-        // itemBuilder: (context, index) => SizedBox(
-        //   height: 50,
-        //   child: Text(nodes[index].key),
-        // ),
         itemBuilder: (context, index) => AnimatedBuilder(
           animation: nodes[index],
           builder: (BuildContext context, Widget? child) => DecoratedBox(
@@ -62,48 +55,65 @@ class _JsonAttribute extends StatelessWidget {
         ? (node.treeDepth - 1) * indentationPadding
         : node.treeDepth * indentationPadding;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (event) => node.highlight(true),
-      onExit: (event) => node.highlight(false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => _onTap(context),
-        child: AnimatedBuilder(
-          animation: node,
-          builder: (BuildContext context, Widget? child) => Padding(
-            padding: EdgeInsets.only(left: padding),
-            child: Row(
-              children: [
-                if (node.isRoot)
-                  SizedBox(
-                    width: indentationPadding,
-                    // TODO: Configurable icons.
-                    child: node.isCollapsed
-                        ? const Icon(Icons.arrow_right)
-                        : const Icon(Icons.arrow_drop_down),
-                  ),
-                Text.rich(
-                  TextSpan(
-                    text: node.key,
-                    style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                          fontWeight: FontWeight.bold,
+    final searchTerm =
+        context.select<DataExplorerStore, String>((store) => store.searchTerm);
+    final hasSearchResult = searchTerm.isNotEmpty
+        ? context.select<DataExplorerStore, bool>(
+            (store) => store.searchResults.contains(node))
+        : false;
+
+    // TODO: This decorated box won't exist. It is here just to highlight
+    // the search results during the SPIKE, we will have a better UI in the
+    // production version.
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: hasSearchResult ? Colors.lightGreen : null,
+      ),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (event) => node.highlight(true),
+        onExit: (event) => node.highlight(false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _onTap(context),
+          child: AnimatedBuilder(
+            animation: node,
+            builder: (BuildContext context, Widget? child) => Padding(
+              padding: EdgeInsets.only(left: padding),
+              child: Row(
+                children: [
+                  if (node.isRoot)
+                    SizedBox(
+                      width: indentationPadding,
+                      // TODO: Configurable icons.
+                      child: node.isCollapsed
+                          ? const Icon(Icons.arrow_right)
+                          : const Icon(Icons.arrow_drop_down),
+                    ),
+                  // TODO: configurable theme.
+                  Text.rich(
+                    TextSpan(
+                      text: node.key,
+                      style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                      children: [
+                        const TextSpan(
+                          text: ' ',
                         ),
-                    children: [
-                      const TextSpan(
-                        text: ' ',
-                      ),
-                      TextSpan(
-                        text: _valueDisplay(),
-                        style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                              color: _valueColor(),
-                            ),
-                      ),
-                    ],
+                        TextSpan(
+                          text: _valueDisplay(),
+                          style:
+                              Theme.of(context).textTheme.subtitle1!.copyWith(
+                                    color: _valueColor(),
+                                  ),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.start,
                   ),
-                  textAlign: TextAlign.start,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

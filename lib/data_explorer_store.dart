@@ -1,4 +1,7 @@
+import 'dart:collection';
+
 import 'package:flutter/widgets.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class NodeViewModelState extends ChangeNotifier {
   final String key;
@@ -204,9 +207,18 @@ List<NodeViewModelState> _flattenArray(List<NodeViewModelState> objects) {
 }
 
 class DataExplorerStore extends ValueNotifier<List<NodeViewModelState>> {
+  final itemScrollController = ItemScrollController();
+  // TODO: maybe the search should be in another store.
+  final _searchResults = <NodeViewModelState>[];
+  String _searchTerm = '';
   dynamic _jsonObject;
 
   DataExplorerStore() : super([]);
+
+  String get searchTerm => _searchTerm;
+
+  Iterable<NodeViewModelState> get searchResults =>
+      UnmodifiableListView(_searchResults);
 
   void collapseNode(NodeViewModelState node) {
     if (node.isCollapsed || !node.isRoot) {
@@ -244,7 +256,18 @@ class DataExplorerStore extends ValueNotifier<List<NodeViewModelState>> {
     buildNodes(_jsonObject, isAllCollapsed: false);
   }
 
+  void search(String term) {
+    _searchTerm = term.toLowerCase();
+    _searchResults.clear();
+    notifyListeners();
+
+    if (term.isNotEmpty) {
+      _doSearch();
+    }
+  }
+
   Future buildNodes(dynamic jsonObject, {bool isAllCollapsed = false}) async {
+    // TODO: remove stopwatch and print.
     Stopwatch stopwatch = Stopwatch()..start();
     final builtNodes = buildViewModelNodes(
       jsonObject,
@@ -266,5 +289,33 @@ class DataExplorerStore extends ValueNotifier<List<NodeViewModelState>> {
           child.isCollapsed ? count + 1 : count + _visibleChildrenCount(child);
     }
     return count;
+  }
+
+  // TODO: not optimal way to do this. Maybe change to a stream once we leave
+  // the SPIKE phase.
+  // Also we are scrolling only to the first item for demo purposes.
+  Future _doSearch() {
+    return Future(() {
+      for (int i = 0; i < value.length; i++) {
+        final node = value[i];
+        if (node.key.toLowerCase().contains(searchTerm)) {
+          _searchResults.add(node);
+        }
+        if (!node.isRoot) {
+          if (node.value.toString().toLowerCase().contains(searchTerm)) {
+            _searchResults.add(node);
+          }
+        }
+      }
+
+      if (_searchResults.isNotEmpty) {
+        notifyListeners();
+        itemScrollController.scrollTo(
+          index: value.indexOf(_searchResults.first),
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    });
   }
 }
