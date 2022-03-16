@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:data_explorer/data_explorer_store.dart';
+import 'package:data_explorer/data_explorer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
