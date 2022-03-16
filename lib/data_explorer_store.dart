@@ -206,14 +206,18 @@ List<NodeViewModelState> _flattenArray(List<NodeViewModelState> objects) {
   return flatList;
 }
 
-class DataExplorerStore extends ValueNotifier<List<NodeViewModelState>> {
+class DataExplorerStore extends ChangeNotifier {
   final itemScrollController = ItemScrollController();
+
+  List<NodeViewModelState> _displayNodes = [];
+
   // TODO: maybe the search should be in another store.
   final _searchResults = <NodeViewModelState>[];
   String _searchTerm = '';
   dynamic _jsonObject;
 
-  DataExplorerStore() : super([]);
+  Iterable<NodeViewModelState> get displayNodes =>
+      UnmodifiableListView(_displayNodes);
 
   String get searchTerm => _searchTerm;
 
@@ -225,11 +229,11 @@ class DataExplorerStore extends ValueNotifier<List<NodeViewModelState>> {
       return;
     }
 
-    final nodeIndex = value.indexOf(node) + 1;
+    final nodeIndex = _displayNodes.indexOf(node) + 1;
     final children = _visibleChildrenCount(node) - 1;
     print('Children $children');
 
-    value.removeRange(nodeIndex, nodeIndex + children);
+    _displayNodes.removeRange(nodeIndex, nodeIndex + children);
     node.collapse();
     notifyListeners();
   }
@@ -243,11 +247,11 @@ class DataExplorerStore extends ValueNotifier<List<NodeViewModelState>> {
       return;
     }
 
-    final nodeIndex = value.indexOf(node) + 1;
+    final nodeIndex = _displayNodes.indexOf(node) + 1;
     final nodes = flatten(node.value);
     print('Nodes ${nodes.length}');
 
-    value.insertAll(nodeIndex, nodes);
+    _displayNodes.insertAll(nodeIndex, nodes);
     node.expand();
     notifyListeners();
   }
@@ -278,7 +282,8 @@ class DataExplorerStore extends ValueNotifier<List<NodeViewModelState>> {
     print('executed in ${stopwatch.elapsed}.');
 
     _jsonObject = jsonObject;
-    value = flatList;
+    _displayNodes = flatList;
+    notifyListeners();
   }
 
   int _visibleChildrenCount(NodeViewModelState node) {
@@ -296,8 +301,8 @@ class DataExplorerStore extends ValueNotifier<List<NodeViewModelState>> {
   // Also we are scrolling only to the first item for demo purposes.
   Future _doSearch() {
     return Future(() {
-      for (int i = 0; i < value.length; i++) {
-        final node = value[i];
+      for (int i = 0; i < _displayNodes.length; i++) {
+        final node = _displayNodes[i];
         if (node.key.toLowerCase().contains(searchTerm)) {
           _searchResults.add(node);
         }
@@ -311,7 +316,7 @@ class DataExplorerStore extends ValueNotifier<List<NodeViewModelState>> {
       if (_searchResults.isNotEmpty) {
         notifyListeners();
         itemScrollController.scrollTo(
-          index: value.indexOf(_searchResults.first),
+          index: _displayNodes.indexOf(_searchResults.first),
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOutCubic,
         );

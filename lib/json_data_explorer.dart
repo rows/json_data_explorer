@@ -5,7 +5,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'data_explorer_store.dart';
 
 class JsonDataExplorer extends StatelessWidget {
-  final List<NodeViewModelState> nodes;
+  final Iterable<NodeViewModelState> nodes;
   final ItemScrollController? itemScrollController;
   final ItemPositionsListener? itemPositionsListener;
 
@@ -22,18 +22,18 @@ class JsonDataExplorer extends StatelessWidget {
         itemScrollController: itemScrollController,
         itemPositionsListener: itemPositionsListener,
         itemBuilder: (context, index) => AnimatedBuilder(
-          animation: nodes[index],
-          builder: (BuildContext context, Widget? child) => DecoratedBox(
+          animation: nodes.elementAt(index),
+          builder: (context, child) => DecoratedBox(
             decoration: BoxDecoration(
               // TODO: Configurable color.
-              color: nodes[index].isHighlighted
+              color: nodes.elementAt(index).isHighlighted
                   ? Colors.deepPurpleAccent.withOpacity(0.2)
                   : null,
             ),
             child: child,
           ),
           child: _JsonAttribute(
-            node: nodes[index],
+            node: nodes.elementAt(index),
           ),
         ),
       );

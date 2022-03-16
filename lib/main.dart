@@ -7,6 +7,71 @@ import 'package:provider/provider.dart';
 import 'data_explorer_store.dart';
 import 'json_data_explorer.dart';
 
+const simpleTestJson = '''
+{
+    "firstClass": {
+        "firstClass.firstField": "firstField",
+        "firstClass.secondField": "secondField",
+        "firstClass.thirdField": "thirdField",
+        "firstClass.firstClassField": {
+            "firstClassField.firstField": "firstField",
+            "firstClassField.secondField": "secondField",
+            "firstClassField.thirdField": "thirdField",
+            "firstClassField.innerClassField": {
+                "innerClassField.firstField": "firstField",
+                "innerClassField.secondField": "secondField",
+                "innerClassField.thirdField": "thirdField"
+            }
+        },
+        "firstClass.secondClassField": {
+            "secondClassField.firstField": "firstField",
+            "secondClassField.secondField": "secondField",
+            "secondClassField.thirdField": "thirdField",
+            "secondClassField.innerClassField": {
+                "innerClassField.firstField": "firstField",
+                "innerClassField.secondField": "secondField",
+                "innerClassField.thirdField": "thirdField"
+            }
+        },
+        "firstClass.array": [
+            0,
+            1,
+            2
+        ]
+    },
+    "secondClass": {
+        "secondClass.firstField": "firstField",
+        "secondClass.secondField": "secondField",
+        "secondClass.thirdField": "thirdField",
+        "secondClass.firstClassField": {
+            "firstClassField.firstField": "firstField",
+            "firstClassField.secondField": "secondField",
+            "firstClassField.thirdField": "thirdField",
+            "firstClassField.innerClassField": {
+                "innerClassField.firstField": "firstField",
+                "innerClassField.secondField": "secondField",
+                "innerClassField.thirdField": "thirdField"
+            }
+        },
+        "secondClass.secondClassField": {
+            "secondClassField.firstField": "firstField",
+            "secondClassField.secondField": "secondField",
+            "secondClassField.thirdField": "thirdField",
+            "secondClassField.innerClassField": {
+                "innerClassField.firstField": "firstField",
+                "innerClassField.secondField": "secondField",
+                "innerClassField.thirdField": "thirdField"
+            }
+        },
+        "secondClass.array": [
+            0,
+            1,
+            2
+        ]
+    }
+}
+''';
+
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
@@ -130,9 +195,8 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
         minimum: const EdgeInsets.all(16),
         child: ChangeNotifierProvider.value(
           value: store,
-          child: ValueListenableBuilder(
-            valueListenable: store,
-            builder: (context, value, child) => Column(
+          child: Consumer<DataExplorerStore>(
+            builder: (context, state, child) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
@@ -140,7 +204,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                     Expanded(
                       child: TextField(
                         controller: searchController,
-                        onChanged: (term) => store.search(term),
+                        onChanged: (term) => state.search(term),
                         maxLines: 1,
                         decoration: const InputDecoration(
                           hintText: 'Search',
@@ -150,8 +214,8 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                     const SizedBox(
                       width: 8,
                     ),
-                    if (store.searchResults.isNotEmpty)
-                      Text('${store.searchResults.length} Results'),
+                    if (state.searchResults.isNotEmpty)
+                      Text('${state.searchResults.length} Results'),
                   ],
                 ),
                 const SizedBox(
@@ -160,14 +224,14 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                 Row(
                   children: [
                     TextButton(
-                      onPressed: store.expandAll,
+                      onPressed: state.expandAll,
                       child: const Text('Expand All'),
                     ),
                     const SizedBox(
                       width: 8.0,
                     ),
                     TextButton(
-                      onPressed: store.collapseAll,
+                      onPressed: state.collapseAll,
                       child: const Text('Collapse All'),
                     ),
                   ],
@@ -177,8 +241,8 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                 ),
                 Expanded(
                   child: JsonDataExplorer(
-                    nodes: store.value,
-                    itemScrollController: store.itemScrollController,
+                    nodes: state.displayNodes,
+                    itemScrollController: state.itemScrollController,
                   ),
                 ),
               ],
