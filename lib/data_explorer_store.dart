@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-class FlatJsonNodeModelState extends ChangeNotifier {
+class NodeViewModelState extends ChangeNotifier {
   final String key;
   final dynamic value;
   final int treeDepth;
@@ -9,50 +9,55 @@ class FlatJsonNodeModelState extends ChangeNotifier {
   final int childrenCount;
 
   bool isHighlighted = false;
-  bool isCollapsed = false;
+  bool isCollapsed;
 
-  FlatJsonNodeModelState({
+  NodeViewModelState({
     required this.treeDepth,
     required this.key,
     required this.value,
     this.childrenCount = 0,
     this.isClass = false,
     this.isArray = false,
+    this.isCollapsed = true,
   });
 
-  factory FlatJsonNodeModelState.fromClass({
+  factory NodeViewModelState.fromClass({
     required int treeDepth,
     required String key,
     required Map<String, dynamic> value,
+    bool isCollapsed = true,
   }) =>
-      FlatJsonNodeModelState(
+      NodeViewModelState(
         isClass: true,
         key: key,
         value: value,
         childrenCount: value.keys.length,
         treeDepth: treeDepth,
+        isCollapsed: isCollapsed,
       );
 
-  factory FlatJsonNodeModelState.fromArray({
+  factory NodeViewModelState.fromArray({
     required int treeDepth,
     required String key,
     required List<dynamic> value,
+    bool isCollapsed = true,
   }) =>
-      FlatJsonNodeModelState(
+      NodeViewModelState(
         isArray: true,
         key: key,
         value: value,
         childrenCount: value.length,
         treeDepth: treeDepth,
+        isCollapsed: isCollapsed,
       );
 
   bool get isRoot => isClass || isArray;
 
-  Iterable<FlatJsonNodeModelState> get children {
+  Iterable<NodeViewModelState> get children {
     if (isClass) {
-      return (value as Map<String, FlatJsonNodeModelState>).values;
+      return (value as Map<String, NodeViewModelState>).values;
     } else if (isArray) {
-      return value as List<FlatJsonNodeModelState>;
+      return value as List<NodeViewModelState>;
     }
     return [];
   }
@@ -76,57 +81,68 @@ class FlatJsonNodeModelState extends ChangeNotifier {
   }
 }
 
-Map<String, FlatJsonNodeModelState> buildViewModelNodes(
-  dynamic object,
-) {
+Map<String, NodeViewModelState> buildViewModelNodes(
+  dynamic object, {
+  bool isAllCollapsed = true,
+}) {
   if (object is Map<String, dynamic>) {
-    return _buildClassNodes(object: object);
+    return _buildClassNodes(object: object, isAllCollapsed: isAllCollapsed);
   }
-  return _buildClassNodes(object: {'data': object});
+  return _buildClassNodes(
+    object: {'data': object},
+    isAllCollapsed: isAllCollapsed,
+  );
 }
 
-Map<String, FlatJsonNodeModelState> _buildClassNodes({
+Map<String, NodeViewModelState> _buildClassNodes({
   required Map<String, dynamic> object,
+  required bool isAllCollapsed,
   int treeDepth = 0,
 }) {
-  final map = <String, FlatJsonNodeModelState>{};
+  final map = <String, NodeViewModelState>{};
   object.forEach((key, value) {
     if (value is Map<String, dynamic>) {
       final subClass = _buildClassNodes(
         object: value,
         treeDepth: treeDepth + 1,
+        isAllCollapsed: isAllCollapsed,
       );
-      map[key] = FlatJsonNodeModelState.fromClass(
+      map[key] = NodeViewModelState.fromClass(
         treeDepth: treeDepth,
         key: key,
         value: subClass,
+        isCollapsed: isAllCollapsed,
       );
     } else if (value is List) {
       final array = _buildArrayNodes(
         object: value,
         treeDepth: treeDepth,
+        isAllCollapsed: isAllCollapsed,
       );
-      map[key] = FlatJsonNodeModelState.fromArray(
+      map[key] = NodeViewModelState.fromArray(
         treeDepth: treeDepth,
         key: key,
         value: array,
+        isCollapsed: isAllCollapsed,
       );
     } else {
-      map[key] = FlatJsonNodeModelState(
+      map[key] = NodeViewModelState(
         key: key,
         value: value,
         treeDepth: treeDepth,
+        isCollapsed: isAllCollapsed,
       );
     }
   });
   return map;
 }
 
-List<FlatJsonNodeModelState> _buildArrayNodes({
+List<NodeViewModelState> _buildArrayNodes({
   required List<dynamic> object,
+  required bool isAllCollapsed,
   int treeDepth = 0,
 }) {
-  final array = <FlatJsonNodeModelState>[];
+  final array = <NodeViewModelState>[];
   for (int i = 0; i < object.length; i++) {
     final arrayValue = object[i];
 
@@ -135,31 +151,32 @@ List<FlatJsonNodeModelState> _buildArrayNodes({
       jsonClass = _buildClassNodes(
         object: arrayValue,
         treeDepth: treeDepth + 2,
+        isAllCollapsed: isAllCollapsed,
       );
     }
     array.add(
-      FlatJsonNodeModelState(
+      NodeViewModelState(
         key: i.toString(),
         value: jsonClass ?? arrayValue,
         treeDepth: treeDepth + 1,
         childrenCount: jsonClass != null ? jsonClass.keys.length : 0,
         isClass: jsonClass != null,
+        isCollapsed: isAllCollapsed,
       ),
     );
   }
   return array;
 }
 
-List<FlatJsonNodeModelState> flatten(dynamic object) {
+List<NodeViewModelState> flatten(dynamic object) {
   if (object is List) {
-    return _flattenArray(object as List<FlatJsonNodeModelState>);
+    return _flattenArray(object as List<NodeViewModelState>);
   }
-  return _flattenClass(object as Map<String, FlatJsonNodeModelState>);
+  return _flattenClass(object as Map<String, NodeViewModelState>);
 }
 
-List<FlatJsonNodeModelState> _flattenClass(
-    Map<String, FlatJsonNodeModelState> object) {
-  final flatList = <FlatJsonNodeModelState>[];
+List<NodeViewModelState> _flattenClass(Map<String, NodeViewModelState> object) {
+  final flatList = <NodeViewModelState>[];
   object.forEach((key, value) {
     flatList.add(value);
 
@@ -174,27 +191,24 @@ List<FlatJsonNodeModelState> _flattenClass(
   return flatList;
 }
 
-List<FlatJsonNodeModelState> _flattenArray(
-    List<FlatJsonNodeModelState> objects) {
-  final flatList = <FlatJsonNodeModelState>[];
+List<NodeViewModelState> _flattenArray(List<NodeViewModelState> objects) {
+  final flatList = <NodeViewModelState>[];
   for (final object in objects) {
     flatList.add(object);
     if (!object.isCollapsed &&
-        object.value is Map<String, FlatJsonNodeModelState>) {
+        object.value is Map<String, NodeViewModelState>) {
       flatList.addAll(_flattenClass(object.value));
     }
   }
   return flatList;
 }
 
-class DataExplorerStore extends ValueNotifier<List<FlatJsonNodeModelState>> {
-  List<FlatJsonNodeModelState> _allNodes;
+class DataExplorerStore extends ValueNotifier<List<NodeViewModelState>> {
+  dynamic _jsonObject;
 
-  DataExplorerStore()
-      : _allNodes = [],
-        super([]);
+  DataExplorerStore() : super([]);
 
-  void collapseNode(FlatJsonNodeModelState node) {
+  void collapseNode(NodeViewModelState node) {
     if (node.isCollapsed || !node.isRoot) {
       return;
     }
@@ -208,7 +222,11 @@ class DataExplorerStore extends ValueNotifier<List<FlatJsonNodeModelState>> {
     notifyListeners();
   }
 
-  void expandNode(FlatJsonNodeModelState node) {
+  void collapseAll() {
+    buildNodes(_jsonObject, isAllCollapsed: true);
+  }
+
+  void expandNode(NodeViewModelState node) {
     if (!node.isCollapsed || !node.isRoot) {
       return;
     }
@@ -222,18 +240,25 @@ class DataExplorerStore extends ValueNotifier<List<FlatJsonNodeModelState>> {
     notifyListeners();
   }
 
-  Future buildNodes(dynamic jsonObject) async {
+  void expandAll() {
+    buildNodes(_jsonObject, isAllCollapsed: false);
+  }
+
+  Future buildNodes(dynamic jsonObject, {bool isAllCollapsed = false}) async {
     Stopwatch stopwatch = Stopwatch()..start();
-    final builtNodes = buildViewModelNodes(jsonObject);
+    final builtNodes = buildViewModelNodes(
+      jsonObject,
+      isAllCollapsed: isAllCollapsed,
+    );
     final flatList = flatten(builtNodes);
     print('Built ${flatList.length} nodes.');
     print('executed in ${stopwatch.elapsed}.');
 
-    _allNodes = flatList;
-    value = List.from(_allNodes);
+    _jsonObject = jsonObject;
+    value = flatList;
   }
 
-  int _visibleChildrenCount(FlatJsonNodeModelState node) {
+  int _visibleChildrenCount(NodeViewModelState node) {
     final children = node.children;
     int count = 1;
     for (final child in children) {

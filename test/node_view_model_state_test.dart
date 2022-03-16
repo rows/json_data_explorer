@@ -4,7 +4,7 @@ import 'package:data_explorer/data_explorer_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  List<FlatJsonNodeModelState> _buildList(String jsonString) {
+  List<NodeViewModelState> _buildList(String jsonString) {
     final builtNodes = buildViewModelNodes(json.decode(jsonString));
     return flatten(builtNodes);
   }

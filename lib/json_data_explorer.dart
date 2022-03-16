@@ -5,7 +5,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'data_explorer_store.dart';
 
 class JsonDataExplorer extends StatelessWidget {
-  final List<FlatJsonNodeModelState> nodes;
+  final List<NodeViewModelState> nodes;
   final ItemScrollController? itemScrollController;
   final ItemPositionsListener? itemPositionsListener;
 
@@ -47,7 +47,7 @@ class JsonDataExplorer extends StatelessWidget {
 }
 
 class _JsonAttribute extends StatelessWidget {
-  final FlatJsonNodeModelState node;
+  final NodeViewModelState node;
   final double indentationPadding;
 
   const _JsonAttribute({

@@ -146,6 +146,24 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                 const SizedBox(
                   height: 16.0,
                 ),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: store.expandAll,
+                      child: const Text('Expand All'),
+                    ),
+                    const SizedBox(
+                      width: 8.0,
+                    ),
+                    TextButton(
+                      onPressed: store.collapseAll,
+                      child: const Text('Collapse All'),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 16.0,
+                ),
                 Expanded(
                   child: JsonDataExplorer(
                     nodes: store.value,
