@@ -3,6 +3,32 @@ import 'dart:collection';
 import 'package:flutter/widgets.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
+/// A view model state that represents a single node item in a json object tree.
+/// A decoded json object can be converted to a [NodeViewModelState] by calling
+/// the [buildViewModelNodes] method.
+///
+/// A node item can be eiter a class root, an array or a single
+/// class/array field.
+///
+///
+/// The string [key] is the same as the json key, unless this node is an element
+/// if an array, then its key is its index in the array.
+///
+/// The node [value] behaviour depends on what this node represents, if it is
+/// a property (from json: "key": "value"), then the value is the actual
+/// property value, one of [num], [String], [bool], [Null]. Since this node
+/// represents a single property, both [isClass] and [isArray] are false.
+///
+/// If this node represents a class, [value] contains a
+/// [Map<String, NodeViewModelState>] with this node's children. In this case
+/// [isClass] is true.
+///
+/// If this node represents an array, [value] contains a
+/// [List<NodeViewModelState>] with this node's children. In this case
+/// [isArray] is true.
+///
+/// See also:
+/// * [buildViewModelNodes]
 class NodeViewModelState extends ChangeNotifier {
   final String key;
   final dynamic value;
@@ -11,26 +37,38 @@ class NodeViewModelState extends ChangeNotifier {
   final bool isArray;
   final int childrenCount;
 
-  bool isHighlighted = false;
-  bool isCollapsed;
+  bool _isHighlighted = false;
+  bool _isCollapsed;
 
-  NodeViewModelState({
+  NodeViewModelState._({
     required this.treeDepth,
     required this.key,
     required this.value,
     this.childrenCount = 0,
     this.isClass = false,
     this.isArray = false,
-    this.isCollapsed = true,
-  });
+    bool isCollapsed = true,
+  }) : _isCollapsed = isCollapsed;
+
+  factory NodeViewModelState.fromProperty({
+    required int treeDepth,
+    required String key,
+    required dynamic value,
+    bool isCollapsed = true,
+  }) =>
+      NodeViewModelState._(
+        key: key,
+        value: value,
+        treeDepth: treeDepth,
+      );
 
   factory NodeViewModelState.fromClass({
     required int treeDepth,
     required String key,
-    required Map<String, dynamic> value,
+    required Map<String, NodeViewModelState> value,
     bool isCollapsed = true,
   }) =>
-      NodeViewModelState(
+      NodeViewModelState._(
         isClass: true,
         key: key,
         value: value,
@@ -45,7 +83,7 @@ class NodeViewModelState extends ChangeNotifier {
     required List<dynamic> value,
     bool isCollapsed = true,
   }) =>
-      NodeViewModelState(
+      NodeViewModelState._(
         isArray: true,
         key: key,
         value: value,
@@ -53,6 +91,10 @@ class NodeViewModelState extends ChangeNotifier {
         treeDepth: treeDepth,
         isCollapsed: isCollapsed,
       );
+
+  bool get isHighlighted => _isHighlighted;
+
+  bool get isCollapsed => _isCollapsed;
 
   bool get isRoot => isClass || isArray;
 
@@ -66,7 +108,7 @@ class NodeViewModelState extends ChangeNotifier {
   }
 
   void highlight(bool highlight) {
-    isHighlighted = highlight;
+    _isHighlighted = highlight;
     for (var children in children) {
       children.highlight(highlight);
     }
@@ -74,12 +116,12 @@ class NodeViewModelState extends ChangeNotifier {
   }
 
   void collapse() {
-    isCollapsed = true;
+    _isCollapsed = true;
     notifyListeners();
   }
 
   void expand() {
-    isCollapsed = false;
+    _isCollapsed = false;
     notifyListeners();
   }
 }
@@ -129,7 +171,7 @@ Map<String, NodeViewModelState> _buildClassNodes({
         isCollapsed: isAllCollapsed,
       );
     } else {
-      map[key] = NodeViewModelState(
+      map[key] = NodeViewModelState.fromProperty(
         key: key,
         value: value,
         treeDepth: treeDepth,
@@ -149,24 +191,29 @@ List<NodeViewModelState> _buildArrayNodes({
   for (int i = 0; i < object.length; i++) {
     final arrayValue = object[i];
 
-    Map<String, dynamic>? jsonClass;
     if (arrayValue is Map<String, dynamic>) {
-      jsonClass = _buildClassNodes(
+      final classNode = _buildClassNodes(
         object: arrayValue,
         treeDepth: treeDepth + 2,
         isAllCollapsed: isAllCollapsed,
       );
+      array.add(
+        NodeViewModelState.fromClass(
+          key: i.toString(),
+          value: classNode,
+          treeDepth: treeDepth + 1,
+          isCollapsed: isAllCollapsed,
+        ),
+      );
+    } else {
+      array.add(
+        NodeViewModelState.fromProperty(
+          key: i.toString(),
+          value: arrayValue,
+          treeDepth: treeDepth + 1,
+        ),
+      );
     }
-    array.add(
-      NodeViewModelState(
-        key: i.toString(),
-        value: jsonClass ?? arrayValue,
-        treeDepth: treeDepth + 1,
-        childrenCount: jsonClass != null ? jsonClass.keys.length : 0,
-        isClass: jsonClass != null,
-        isCollapsed: isAllCollapsed,
-      ),
-    );
   }
   return array;
 }
