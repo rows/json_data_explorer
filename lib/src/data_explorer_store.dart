@@ -29,12 +29,28 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 ///
 /// See also:
 /// * [buildViewModelNodes]
+/// * [flatten]
 class NodeViewModelState extends ChangeNotifier {
+  /// This attribute name.
   final String key;
+
+  /// This attribute value, it may be one of the following:
+  /// [num], [String], [bool], [Null], [Map<String, NodeViewModelState>] or
+  /// [List<NodeViewModelState>].
   final dynamic value;
+
+  /// How deep in the tree this node is.
   final int treeDepth;
+
+  /// Flags if this node is a class, if [true], then [value] is as
+  /// Map<String, NodeViewModelState>.
   final bool isClass;
+
+  /// Flags if this node is an array, if [true], then [value] is a
+  /// [List<NodeViewModelState>].
   final bool isArray;
+
+  /// The children count of this node.
   final int childrenCount;
 
   bool _isHighlighted = false;
@@ -50,6 +66,12 @@ class NodeViewModelState extends ChangeNotifier {
     bool isCollapsed = true,
   }) : _isCollapsed = isCollapsed;
 
+  /// Build a [NodeViewModelState] as a property.
+  /// A property is a single attribute in the json, can be of a type
+  /// [num], [String], [bool] or [Null].
+  ///
+  /// Properties always return [false] when calling [isClass], [isArray]
+  /// and [isRoot]
   factory NodeViewModelState.fromProperty({
     required int treeDepth,
     required String key,
@@ -62,6 +84,13 @@ class NodeViewModelState extends ChangeNotifier {
         treeDepth: treeDepth,
       );
 
+  /// Build a [NodeViewModelState] as a class.
+  /// A class is a JSON node containing a whole class, a class can have
+  /// multiple children properties, classes or arrays.
+  /// Its value is always a [Map<String, NodeViewModelState>] containing the
+  /// children information.
+  ///
+  /// Classes always return [true] when calling [isClass] and [isRoot].
   factory NodeViewModelState.fromClass({
     required int treeDepth,
     required String key,
@@ -77,6 +106,14 @@ class NodeViewModelState extends ChangeNotifier {
         isCollapsed: isCollapsed,
       );
 
+  /// Build a [NodeViewModelState] as an array.
+  /// An array is a JSON node containing an array of objects, each element
+  /// inside the array is represented by another [NodeViewModelState]. Thus
+  /// it can be values or classes.
+  /// Its value is always a [List<NodeViewModelState>] containing the
+  /// children information.
+  ///
+  /// Arrays always return [true] when calling [isArray] and [isRoot].
   factory NodeViewModelState.fromArray({
     required int treeDepth,
     required String key,
@@ -92,12 +129,25 @@ class NodeViewModelState extends ChangeNotifier {
         isCollapsed: isCollapsed,
       );
 
+  /// Returns [true] if this node is highlighted.
+  ///
+  /// This is a mutable property, [notifyListeners] is called to notify all
+  ///  registered listeners.
   bool get isHighlighted => _isHighlighted;
 
+  /// Returns [true] if this node is collapsed.
+  ///
+  /// This is a mutable property, [notifyListeners] is called to notify all
+  /// registered listeners.
   bool get isCollapsed => _isCollapsed;
 
+  /// Returns [true] if this is a root node.
+  ///
+  /// A root node is a node that contains multiple children. A class or an
+  /// array.
   bool get isRoot => isClass || isArray;
 
+  /// Returns a list of this node's children.
   Iterable<NodeViewModelState> get children {
     if (isClass) {
       return (value as Map<String, NodeViewModelState>).values;
@@ -107,6 +157,9 @@ class NodeViewModelState extends ChangeNotifier {
     return [];
   }
 
+  /// Sets the highlight property of this node and all of its children.
+  ///
+  /// [notifyListeners] is called to notify all registered listeners.
   void highlight(bool highlight) {
     _isHighlighted = highlight;
     for (var children in children) {
@@ -115,11 +168,17 @@ class NodeViewModelState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Sets the [isCollapsed] property to [false].
+  ///
+  /// [notifyListeners] is called to notify all registered listeners.
   void collapse() {
     _isCollapsed = true;
     notifyListeners();
   }
 
+  /// Sets the [isCollapsed] property to [true].
+  ///
+  /// [notifyListeners] is called to notify all registered listeners.
   void expand() {
     _isCollapsed = false;
     notifyListeners();
