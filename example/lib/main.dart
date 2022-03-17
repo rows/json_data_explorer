@@ -191,7 +191,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
     final data = await http.read(Uri.parse(url));
     print('Done!');
     var decoded = json.decode(data);
-    store.buildNodes(decoded);
+    store.buildNodes(decoded, isAllCollapsed: true);
   }
 
   @override

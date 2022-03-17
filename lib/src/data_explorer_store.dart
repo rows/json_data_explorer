@@ -63,7 +63,7 @@ class NodeViewModelState extends ChangeNotifier {
     this.childrenCount = 0,
     this.isClass = false,
     this.isArray = false,
-    bool isCollapsed = true,
+    bool isCollapsed = false,
   }) : _isCollapsed = isCollapsed;
 
   /// Build a [NodeViewModelState] as a property.
@@ -76,7 +76,6 @@ class NodeViewModelState extends ChangeNotifier {
     required int treeDepth,
     required String key,
     required dynamic value,
-    bool isCollapsed = true,
   }) =>
       NodeViewModelState._(
         key: key,
@@ -95,7 +94,6 @@ class NodeViewModelState extends ChangeNotifier {
     required int treeDepth,
     required String key,
     required Map<String, NodeViewModelState> value,
-    bool isCollapsed = true,
   }) =>
       NodeViewModelState._(
         isClass: true,
@@ -103,7 +101,6 @@ class NodeViewModelState extends ChangeNotifier {
         value: value,
         childrenCount: value.keys.length,
         treeDepth: treeDepth,
-        isCollapsed: isCollapsed,
       );
 
   /// Build a [NodeViewModelState] as an array.
@@ -118,7 +115,6 @@ class NodeViewModelState extends ChangeNotifier {
     required int treeDepth,
     required String key,
     required List<dynamic> value,
-    bool isCollapsed = true,
   }) =>
       NodeViewModelState._(
         isArray: true,
@@ -126,7 +122,6 @@ class NodeViewModelState extends ChangeNotifier {
         value: value,
         childrenCount: value.length,
         treeDepth: treeDepth,
-        isCollapsed: isCollapsed,
       );
 
   /// Returns [true] if this node is highlighted.
@@ -185,22 +180,15 @@ class NodeViewModelState extends ChangeNotifier {
   }
 }
 
-Map<String, NodeViewModelState> buildViewModelNodes(
-  dynamic object, {
-  bool isAllCollapsed = true,
-}) {
+Map<String, NodeViewModelState> buildViewModelNodes(dynamic object) {
   if (object is Map<String, dynamic>) {
-    return _buildClassNodes(object: object, isAllCollapsed: isAllCollapsed);
+    return _buildClassNodes(object: object);
   }
-  return _buildClassNodes(
-    object: {'data': object},
-    isAllCollapsed: isAllCollapsed,
-  );
+  return _buildClassNodes(object: {'data': object});
 }
 
 Map<String, NodeViewModelState> _buildClassNodes({
   required Map<String, dynamic> object,
-  required bool isAllCollapsed,
   int treeDepth = 0,
 }) {
   final map = <String, NodeViewModelState>{};
@@ -209,32 +197,27 @@ Map<String, NodeViewModelState> _buildClassNodes({
       final subClass = _buildClassNodes(
         object: value,
         treeDepth: treeDepth + 1,
-        isAllCollapsed: isAllCollapsed,
       );
       map[key] = NodeViewModelState.fromClass(
         treeDepth: treeDepth,
         key: key,
         value: subClass,
-        isCollapsed: isAllCollapsed,
       );
     } else if (value is List) {
       final array = _buildArrayNodes(
         object: value,
         treeDepth: treeDepth,
-        isAllCollapsed: isAllCollapsed,
       );
       map[key] = NodeViewModelState.fromArray(
         treeDepth: treeDepth,
         key: key,
         value: array,
-        isCollapsed: isAllCollapsed,
       );
     } else {
       map[key] = NodeViewModelState.fromProperty(
         key: key,
         value: value,
         treeDepth: treeDepth,
-        isCollapsed: isAllCollapsed,
       );
     }
   });
@@ -243,7 +226,6 @@ Map<String, NodeViewModelState> _buildClassNodes({
 
 List<NodeViewModelState> _buildArrayNodes({
   required List<dynamic> object,
-  required bool isAllCollapsed,
   int treeDepth = 0,
 }) {
   final array = <NodeViewModelState>[];
@@ -254,14 +236,12 @@ List<NodeViewModelState> _buildArrayNodes({
       final classNode = _buildClassNodes(
         object: arrayValue,
         treeDepth: treeDepth + 2,
-        isAllCollapsed: isAllCollapsed,
       );
       array.add(
         NodeViewModelState.fromClass(
           key: i.toString(),
           value: classNode,
           treeDepth: treeDepth + 1,
-          isCollapsed: isAllCollapsed,
         ),
       );
     } else {
@@ -362,11 +342,11 @@ class DataExplorerStore extends ChangeNotifier {
   final itemScrollController = ItemScrollController();
 
   List<NodeViewModelState> _displayNodes = [];
+  UnmodifiableListView<NodeViewModelState> _allNodes = UnmodifiableListView([]);
 
   // TODO: maybe the search should be in another store.
   final _searchResults = <NodeViewModelState>[];
   String _searchTerm = '';
-  dynamic _jsonObject;
 
   /// Gets the list of nodes to be displayed.
   ///
@@ -404,8 +384,6 @@ class DataExplorerStore extends ChangeNotifier {
 
     final nodeIndex = _displayNodes.indexOf(node) + 1;
     final children = _visibleChildrenCount(node) - 1;
-    print('Children $children');
-
     _displayNodes.removeRange(nodeIndex, nodeIndex + children);
     node.collapse();
     notifyListeners();
@@ -421,7 +399,20 @@ class DataExplorerStore extends ChangeNotifier {
   /// See also:
   /// * [expandAll]
   void collapseAll() {
-    buildNodes(_jsonObject, isAllCollapsed: true);
+    final rootNodes =
+        _displayNodes.where((node) => node.treeDepth == 0 && !node.isCollapsed);
+    final collapsedNodes = List<NodeViewModelState>.from(_displayNodes);
+    for (final node in rootNodes) {
+      final nodeIndex = collapsedNodes.indexOf(node) + 1;
+      final children = _visibleChildrenCount(node) - 1;
+      collapsedNodes.removeRange(nodeIndex, nodeIndex + children);
+    }
+
+    for (final node in _allNodes) {
+      node.collapse();
+    }
+    _displayNodes = collapsedNodes;
+    notifyListeners();
   }
 
   /// Expands the given [node] so its children become visible.
@@ -441,8 +432,6 @@ class DataExplorerStore extends ChangeNotifier {
 
     final nodeIndex = _displayNodes.indexOf(node) + 1;
     final nodes = flatten(node.value);
-    print('Nodes ${nodes.length}');
-
     _displayNodes.insertAll(nodeIndex, nodes);
     node.expand();
     notifyListeners();
@@ -458,7 +447,11 @@ class DataExplorerStore extends ChangeNotifier {
   /// See also:
   /// * [collapseAll]
   void expandAll() {
-    buildNodes(_jsonObject, isAllCollapsed: false);
+    for (final node in _allNodes) {
+      node.expand();
+    }
+    _displayNodes = List.from(_allNodes);
+    notifyListeners();
   }
 
   /// Executes a search in the current data structure looking for the given
@@ -487,17 +480,17 @@ class DataExplorerStore extends ChangeNotifier {
   Future buildNodes(dynamic jsonObject, {bool isAllCollapsed = false}) async {
     // TODO: remove stopwatch and print.
     Stopwatch stopwatch = Stopwatch()..start();
-    final builtNodes = buildViewModelNodes(
-      jsonObject,
-      isAllCollapsed: isAllCollapsed,
-    );
+    final builtNodes = buildViewModelNodes(jsonObject);
     final flatList = flatten(builtNodes);
+
+    _allNodes = UnmodifiableListView(flatList);
+    _displayNodes = List.from(flatList);
+    if (isAllCollapsed) {
+      collapseAll();
+    }
+    notifyListeners();
     print('Built ${flatList.length} nodes.');
     print('executed in ${stopwatch.elapsed}.');
-
-    _jsonObject = jsonObject;
-    _displayNodes = flatList;
-    notifyListeners();
   }
 
   int _visibleChildrenCount(NodeViewModelState node) {
@@ -515,8 +508,7 @@ class DataExplorerStore extends ChangeNotifier {
   // Also we are scrolling only to the first item for demo purposes.
   Future _doSearch() {
     return Future(() {
-      for (int i = 0; i < _displayNodes.length; i++) {
-        final node = _displayNodes[i];
+      for (final node in _allNodes) {
         if (node.key.toLowerCase().contains(searchTerm)) {
           _searchResults.add(node);
         }
@@ -529,11 +521,14 @@ class DataExplorerStore extends ChangeNotifier {
 
       if (_searchResults.isNotEmpty) {
         notifyListeners();
-        itemScrollController.scrollTo(
-          index: _displayNodes.indexOf(_searchResults.first),
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOutCubic,
-        );
+        final index = _displayNodes.indexOf(_searchResults.first);
+        if (index != -1) {
+          itemScrollController.scrollTo(
+            index: _displayNodes.indexOf(_searchResults.first),
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOutCubic,
+          );
+        }
       }
     });
   }
