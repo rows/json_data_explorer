@@ -312,6 +312,52 @@ List<NodeViewModelState> _flattenArray(List<NodeViewModelState> objects) {
   return flatList;
 }
 
+/// Handles the data and manages the state of a data explorer.
+///
+/// The data must be initialized by calling the [buildNodes] method.
+/// This method takes a raw JSON object [Map<String, dynamic>] or
+/// [List<dynamic>] and builds a flat node list of [NodeViewModelState].
+///
+///
+/// The property [displayNodes] contains a flat list of all nodes that can be
+/// displayed.
+/// This means that each node property is an element in this list, even inner
+/// class properties.
+///
+/// ## Example
+///
+/// {@tool snippet}
+///
+/// Considering the following JSON file with inner classes and properties:
+///
+/// ```json
+/// {
+///   "someClass": {
+///     "classField": "value",
+///     "innerClass": {
+///         "innerClassField": "value"
+///         }
+///     }
+///     "arrayField": [0, 1]
+/// }
+///
+/// The [displayNodes] representation is going to look like this:
+/// [
+///   node {"someClass": ...},
+///   node {"classField": ...},
+///   node {"innerClass": ...},
+///   node {"innerClassField": ...},
+///   node {"arrayField": ...},
+///   node {"0": ...},
+///   node {"1": ...},
+/// ]
+///
+/// ```
+/// {@end-tool}
+///
+/// This data structure allows us to render the nodes easily using a
+/// [ListView.builder] for example, or any other kind of list rendering widget.
+///
 class DataExplorerStore extends ChangeNotifier {
   final itemScrollController = ItemScrollController();
 
@@ -322,14 +368,35 @@ class DataExplorerStore extends ChangeNotifier {
   String _searchTerm = '';
   dynamic _jsonObject;
 
+  /// Gets the list of nodes to be displayed.
+  ///
+  /// [notifyListeners] is called whenever this value changes.
+  /// The returned [Iterable] is closed for modification.
   Iterable<NodeViewModelState> get displayNodes =>
       UnmodifiableListView(_displayNodes);
 
+  /// Gets the current search term.
+  ///
+  /// [notifyListeners] is called whenever this value changes.
   String get searchTerm => _searchTerm;
 
+  /// Gets a list containing the nodes found by the current search term.
+  ///
+  /// [notifyListeners] is called whenever this value changes.
+  /// The returned [Iterable] is closed for modification.
   Iterable<NodeViewModelState> get searchResults =>
       UnmodifiableListView(_searchResults);
 
+  /// Collapses the given [node] so its children won't be visible.
+  ///
+  /// This will change the [node] [NodeViewModelState.isCollapsed] property to
+  /// true. But its children won't change states, so when the node is expanded
+  /// its children states are unchanged.
+  ///
+  /// [notifyListeners] is called to notify all registered listeners.
+  ///
+  /// See also:
+  /// * [expandNode]
   void collapseNode(NodeViewModelState node) {
     if (node.isCollapsed || !node.isRoot) {
       return;
@@ -344,10 +411,29 @@ class DataExplorerStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Collapses all nodes.
+  ///
+  /// This collapses every single node of the data structure, meaning that only
+  /// the upper root nodes will be in the [displayNodes] list.
+  ///
+  /// [notifyListeners] is called to notify all registered listeners.
+  ///
+  /// See also:
+  /// * [expandAll]
   void collapseAll() {
     buildNodes(_jsonObject, isAllCollapsed: true);
   }
 
+  /// Expands the given [node] so its children become visible.
+  ///
+  /// This will change the [node] [NodeViewModelState.isCollapsed] property to
+  /// false. But its children won't change states, so when the node is expanded
+  /// its children states are unchanged.
+  ///
+  /// [notifyListeners] is called to notify all registered listeners.
+  ///
+  /// See also:
+  /// * [collapseNode]
   void expandNode(NodeViewModelState node) {
     if (!node.isCollapsed || !node.isRoot) {
       return;
@@ -362,10 +448,26 @@ class DataExplorerStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Expands all nodes.
+  ///
+  /// This expands every single node of the data structure, meaning that all
+  /// nodes will be in the [displayNodes] list.
+  ///
+  /// [notifyListeners] is called to notify all registered listeners.
+  ///
+  /// See also:
+  /// * [collapseAll]
   void expandAll() {
     buildNodes(_jsonObject, isAllCollapsed: false);
   }
 
+  /// Executes a search in the current data structure looking for the given
+  /// search [term].
+  ///
+  /// The search looks for matching terms in both key and values from all nodes.
+  /// The results can be retrieved in the [searchResults] lists.
+  ///
+  /// [notifyListeners] is called to notify all registered listeners.
   void search(String term) {
     _searchTerm = term.toLowerCase();
     _searchResults.clear();
@@ -376,6 +478,12 @@ class DataExplorerStore extends ChangeNotifier {
     }
   }
 
+  /// Uses the given [jsonObject] to build the [displayNodes] list.
+  ///
+  /// If [isAllCollapsed] is true, then all nodes will be collapsed, and
+  /// initially only upper root nodes will be in the list.
+  ///
+  /// [notifyListeners] is called to notify all registered listeners.
   Future buildNodes(dynamic jsonObject, {bool isAllCollapsed = false}) async {
     // TODO: remove stopwatch and print.
     Stopwatch stopwatch = Stopwatch()..start();
