@@ -1,351 +1,266 @@
-import 'dart:convert';
-
 import 'package:data_explorer/data_explorer.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockCallbackFunction extends Mock {
+  call();
+}
 
 void main() {
-  List<NodeViewModelState> _buildList(String jsonString) {
-    final builtNodes = buildViewModelNodes(json.decode(jsonString));
-    return flatten(builtNodes);
-  }
+  group('NodeViewModelState', () {
+    group('Property', () {
+      test('build as a property', () async {
+        final viewModel = NodeViewModelState.fromProperty(
+          treeDepth: 1,
+          key: 'key',
+          value: 123,
+        );
 
-  group('Classes', () {
-    test('builds a flat list from a simple json', () async {
-      const jsonString = '''
-{
-    "firstField": "firstField",
-    "secondField": "secondField",
-    "thirdField": "thirdField"
-}
-''';
+        expect(viewModel.key, 'key');
+        expect(viewModel.value, isA<int>());
+        expect(viewModel.value, 123);
+        expect(viewModel.isRoot, isFalse);
+        expect(viewModel.isClass, isFalse);
+        expect(viewModel.isArray, isFalse);
+        expect(viewModel.isHighlighted, isFalse);
+        expect(viewModel.isCollapsed, isFalse);
+      });
 
-      final viewModels = _buildList(jsonString);
-      expect(viewModels, hasLength(3));
-      expect(viewModels[0].key, 'firstField');
-      expect(viewModels[0].value, 'firstField');
-      expect(viewModels[0].isRoot, isFalse);
-      expect(viewModels[0].treeDepth, 0);
+      test('a property has no children nodes', () async {
+        final viewModel = NodeViewModelState.fromProperty(
+          treeDepth: 1,
+          key: 'key',
+          value: 123,
+        );
+        expect(viewModel.childrenCount, 0);
+        expect(viewModel.children, hasLength(0));
+      });
 
-      expect(viewModels[1].key, 'secondField');
-      expect(viewModels[1].value, 'secondField');
-      expect(viewModels[1].isRoot, isFalse);
-      expect(viewModels[1].treeDepth, 0);
+      test('highlight notifies listeners', () {
+        final viewModel = NodeViewModelState.fromProperty(
+          treeDepth: 1,
+          key: 'key',
+          value: 123,
+        );
+        final listener = MockCallbackFunction();
+        viewModel.addListener(listener);
 
-      expect(viewModels[2].key, 'thirdField');
-      expect(viewModels[2].value, 'thirdField');
-      expect(viewModels[2].isRoot, isFalse);
-      expect(viewModels[2].treeDepth, 0);
+        viewModel.highlight(true);
+        expect(viewModel.isHighlighted, isTrue);
+
+        viewModel.highlight(false);
+        expect(viewModel.isHighlighted, isFalse);
+        expect(verify(() => listener.call()).callCount, 2);
+      });
+
+      test('collapse notifies listeners', () {
+        final viewModel = NodeViewModelState.fromProperty(
+          treeDepth: 1,
+          key: 'key',
+          value: 123,
+        );
+        final listener = MockCallbackFunction();
+        viewModel.addListener(listener);
+
+        viewModel.collapse();
+        expect(viewModel.isCollapsed, isTrue);
+
+        viewModel.expand();
+        expect(viewModel.isCollapsed, isFalse);
+        expect(verify(() => listener.call()).callCount, 2);
+      });
     });
 
-    test('builds a flat list from multiple json classes', () async {
-      const jsonString = '''
-{
-    "firstClass": {
-        "firstField": "firstField",
-        "secondField": "secondField",
-        "thirdField": "thirdField"
-    },
-    "secondClass": {
-        "firstField": "firstField",
-        "secondField": "secondField",
-        "thirdField": "thirdField"
-    }
-}
-''';
+    group('Class', () {
+      test('build as a class', () async {
+        final classMap = {
+          'propertyA': NodeViewModelState.fromProperty(
+            treeDepth: 1,
+            key: 'propertyA',
+            value: 123,
+          ),
+          'propertyB': NodeViewModelState.fromProperty(
+            treeDepth: 1,
+            key: 'propertyB',
+            value: 'string',
+          ),
+        };
 
-      final viewModels = _buildList(jsonString);
-      expect(viewModels, hasLength(8));
-      expect(viewModels[0].key, 'firstClass');
-      expect(viewModels[0].value, isNotNull);
-      expect(viewModels[0].isRoot, isTrue);
-      expect(viewModels[0].isClass, isTrue);
-      expect(viewModels[0].isArray, isFalse);
-      expect(viewModels[0].childrenCount, 3);
-      expect(viewModels[0].treeDepth, 0);
+        final viewModel = NodeViewModelState.fromClass(
+          treeDepth: 0,
+          key: 'classKey',
+          value: classMap,
+        );
 
-      expect(viewModels[1].key, 'firstField');
-      expect(viewModels[1].value, 'firstField');
-      expect(viewModels[1].isRoot, isFalse);
-      expect(viewModels[1].treeDepth, 1);
+        expect(viewModel.key, 'classKey');
+        expect(viewModel.value, isA<Map<String, NodeViewModelState>>());
+        expect(viewModel.value, hasLength(2));
+        expect(viewModel.isRoot, isTrue);
+        expect(viewModel.isClass, isTrue);
+        expect(viewModel.isArray, isFalse);
+        expect(viewModel.isHighlighted, isFalse);
+        expect(viewModel.isCollapsed, isFalse);
+      });
 
-      expect(viewModels[2].key, 'secondField');
-      expect(viewModels[2].value, 'secondField');
-      expect(viewModels[2].isRoot, isFalse);
-      expect(viewModels[2].treeDepth, 1);
+      test('children nodes', () async {
+        final classMap = {
+          'propertyA': NodeViewModelState.fromProperty(
+            treeDepth: 1,
+            key: 'propertyA',
+            value: 123,
+          ),
+          'propertyB': NodeViewModelState.fromProperty(
+            treeDepth: 1,
+            key: 'propertyB',
+            value: 'string',
+          ),
+        };
 
-      expect(viewModels[3].key, 'thirdField');
-      expect(viewModels[3].value, 'thirdField');
-      expect(viewModels[3].isRoot, isFalse);
-      expect(viewModels[3].treeDepth, 1);
+        final viewModel = NodeViewModelState.fromClass(
+          treeDepth: 0,
+          key: 'classKey',
+          value: classMap,
+        );
 
-      expect(viewModels[4].key, 'secondClass');
-      expect(viewModels[4].value, isNotNull);
-      expect(viewModels[4].isRoot, isTrue);
-      expect(viewModels[4].isClass, isTrue);
-      expect(viewModels[4].isArray, isFalse);
-      expect(viewModels[4].childrenCount, 3);
-      expect(viewModels[4].treeDepth, 0);
+        expect(viewModel.childrenCount, 2);
+        expect(viewModel.children, hasLength(2));
+        expect(viewModel.children.elementAt(0).key, 'propertyA');
+        expect(viewModel.children.elementAt(1).key, 'propertyB');
+      });
 
-      expect(viewModels[5].key, 'firstField');
-      expect(viewModels[5].value, 'firstField');
-      expect(viewModels[5].isRoot, isFalse);
-      expect(viewModels[5].treeDepth, 1);
+      test('highlight sets highlight in all children', () {
+        final classMap = {
+          'property': NodeViewModelState.fromProperty(
+            treeDepth: 1,
+            key: 'property',
+            value: 123,
+          ),
+          'innerClass': NodeViewModelState.fromClass(
+            treeDepth: 1,
+            key: 'innerClass',
+            value: {
+              'innerClassProperty': NodeViewModelState.fromProperty(
+                treeDepth: 2,
+                key: 'innerClassProperty',
+                value: 123,
+              ),
+            },
+          ),
+        };
 
-      expect(viewModels[6].key, 'secondField');
-      expect(viewModels[6].value, 'secondField');
-      expect(viewModels[6].isRoot, isFalse);
-      expect(viewModels[6].treeDepth, 1);
+        final viewModel = NodeViewModelState.fromClass(
+          treeDepth: 0,
+          key: 'classKey',
+          value: classMap,
+        );
 
-      expect(viewModels[7].key, 'thirdField');
-      expect(viewModels[7].value, 'thirdField');
-      expect(viewModels[7].isRoot, isFalse);
-      expect(viewModels[7].treeDepth, 1);
+        viewModel.highlight(true);
+        expect(viewModel.isHighlighted, isTrue);
+        expect(classMap['property']!.isHighlighted, isTrue);
+        expect(classMap['innerClass']!.isHighlighted, isTrue);
+        expect(
+          classMap['innerClass']!.value['innerClassProperty']!.isHighlighted,
+          isTrue,
+        );
+
+        viewModel.highlight(false);
+        expect(viewModel.isHighlighted, isFalse);
+        expect(classMap['property']!.isHighlighted, isFalse);
+        expect(classMap['innerClass']!.isHighlighted, isFalse);
+        expect(
+          classMap['innerClass']!.value['innerClassProperty']!.isHighlighted,
+          isFalse,
+        );
+      });
     });
 
-    test('builds a flat list from multiple nested json classes', () async {
-      const jsonString = '''
-{
-    "firstClass": {
-        "firstField": "firstField",
-        "firstClassField": {
-            "firstField": "firstField",
-            "innerClassField": {
-                "firstField": "firstField"
-            }
-        },
-        "secondClassField": {
-            "firstField": "firstField",
-            "innerClassField": {
-                "firstField": "firstField"
-            }
-        }
-    }
-}
-''';
+    group('Array', () {
+      test('build as an array', () async {
+        final arrayValues = [
+          NodeViewModelState.fromProperty(
+            treeDepth: 1,
+            key: '0',
+            value: 123,
+          ),
+          NodeViewModelState.fromProperty(
+            treeDepth: 1,
+            key: '1',
+            value: 'string',
+          ),
+        ];
 
-      final viewModels = _buildList(jsonString);
-      expect(viewModels, hasLength(10));
-      expect(viewModels[0].key, 'firstClass');
-      expect(viewModels[0].value, isNotNull);
-      expect(viewModels[0].isRoot, isTrue);
-      expect(viewModels[0].isClass, isTrue);
-      expect(viewModels[0].isArray, isFalse);
-      expect(viewModels[0].childrenCount, 3);
-      expect(viewModels[0].treeDepth, 0);
+        final viewModel = NodeViewModelState.fromArray(
+          treeDepth: 0,
+          key: 'arrayKey',
+          value: arrayValues,
+        );
 
-      expect(viewModels[1].key, 'firstField');
-      expect(viewModels[1].value, isNotNull);
-      expect(viewModels[1].isRoot, isFalse);
-      expect(viewModels[1].treeDepth, 1);
+        expect(viewModel.key, 'arrayKey');
+        expect(viewModel.value, isA<List<NodeViewModelState>>());
+        expect(viewModel.value, hasLength(2));
+        expect(viewModel.isRoot, isTrue);
+        expect(viewModel.isClass, isFalse);
+        expect(viewModel.isArray, isTrue);
+        expect(viewModel.isHighlighted, isFalse);
+        expect(viewModel.isCollapsed, isFalse);
+      });
 
-      expect(viewModels[2].key, 'firstClassField');
-      expect(viewModels[2].value, isNotNull);
-      expect(viewModels[2].isRoot, isTrue);
-      expect(viewModels[2].isClass, isTrue);
-      expect(viewModels[2].isArray, isFalse);
-      expect(viewModels[2].childrenCount, 2);
-      expect(viewModels[2].treeDepth, 1);
+      test('children nodes', () async {
+        final arrayValues = [
+          NodeViewModelState.fromProperty(
+            treeDepth: 1,
+            key: '0',
+            value: 123,
+          ),
+          NodeViewModelState.fromProperty(
+            treeDepth: 1,
+            key: '1',
+            value: 'string',
+          ),
+        ];
 
-      expect(viewModels[3].key, 'firstField');
-      expect(viewModels[3].value, isNotNull);
-      expect(viewModels[3].isRoot, isFalse);
-      expect(viewModels[3].treeDepth, 2);
+        final viewModel = NodeViewModelState.fromArray(
+          treeDepth: 0,
+          key: 'arrayKey',
+          value: arrayValues,
+        );
 
-      expect(viewModels[4].key, 'innerClassField');
-      expect(viewModels[4].value, isNotNull);
-      expect(viewModels[4].isRoot, isTrue);
-      expect(viewModels[4].isClass, isTrue);
-      expect(viewModels[4].isArray, isFalse);
-      expect(viewModels[4].childrenCount, 1);
-      expect(viewModels[4].treeDepth, 2);
+        expect(viewModel.childrenCount, 2);
+        expect(viewModel.children, hasLength(2));
+        expect(viewModel.children.elementAt(0).key, '0');
+        expect(viewModel.children.elementAt(1).key, '1');
+      });
 
-      expect(viewModels[5].key, 'firstField');
-      expect(viewModels[5].value, isNotNull);
-      expect(viewModels[5].isRoot, isFalse);
-      expect(viewModels[5].treeDepth, 3);
+      test('highlight sets highlight in all children', () {
+        final arrayValues = [
+          NodeViewModelState.fromClass(
+            treeDepth: 1,
+            key: 'class',
+            value: {
+              'classProperty': NodeViewModelState.fromProperty(
+                treeDepth: 2,
+                key: 'classProperty',
+                value: 123,
+              ),
+            },
+          ),
+        ];
+        final viewModel = NodeViewModelState.fromArray(
+          treeDepth: 0,
+          key: 'arrayKey',
+          value: arrayValues,
+        );
 
-      expect(viewModels[6].key, 'secondClassField');
-      expect(viewModels[6].value, isNotNull);
-      expect(viewModels[6].isRoot, isTrue);
-      expect(viewModels[6].isClass, isTrue);
-      expect(viewModels[6].isArray, isFalse);
-      expect(viewModels[6].childrenCount, 2);
-      expect(viewModels[6].treeDepth, 1);
+        viewModel.highlight(true);
+        expect(viewModel.isHighlighted, isTrue);
+        expect(arrayValues[0].isHighlighted, isTrue);
+        expect(arrayValues[0].value['classProperty']!.isHighlighted, isTrue);
 
-      expect(viewModels[7].key, 'firstField');
-      expect(viewModels[7].value, isNotNull);
-      expect(viewModels[7].isRoot, isFalse);
-      expect(viewModels[7].treeDepth, 2);
-
-      expect(viewModels[8].key, 'innerClassField');
-      expect(viewModels[8].value, isNotNull);
-      expect(viewModels[8].isRoot, isTrue);
-      expect(viewModels[8].isClass, isTrue);
-      expect(viewModels[8].isArray, isFalse);
-      expect(viewModels[8].childrenCount, 1);
-      expect(viewModels[8].treeDepth, 2);
-
-      expect(viewModels[9].key, 'firstField');
-      expect(viewModels[9].value, isNotNull);
-      expect(viewModels[9].isRoot, isFalse);
-      expect(viewModels[9].treeDepth, 3);
-    });
-  });
-
-  group('Arrays', () {
-    test('builds a flat list from json array', () async {
-      const jsonString = '[1, 2]';
-
-      final viewModels = _buildList(jsonString);
-      expect(viewModels, hasLength(3));
-
-      expect(viewModels[0].key, 'data');
-      expect(viewModels[0].value, isNotNull);
-      expect(viewModels[0].isRoot, isTrue);
-      expect(viewModels[0].isArray, isTrue);
-      expect(viewModels[0].childrenCount, 2);
-      expect(viewModels[0].treeDepth, 0);
-
-      expect(viewModels[1].key, '0');
-      expect(viewModels[1].value, 1);
-      expect(viewModels[1].isRoot, isFalse);
-      expect(viewModels[1].treeDepth, 1);
-
-      expect(viewModels[2].key, '1');
-      expect(viewModels[2].value, 2);
-      expect(viewModels[2].isRoot, isFalse);
-      expect(viewModels[2].treeDepth, 1);
-    });
-
-    test('builds a flat list from array of classes', () async {
-      const jsonString = '''
-[
-    {
-        "0.firstField": "firstField"
-    },
-    {
-        "1.firstField": "firstField"
-    }
-]
-      ''';
-
-      final viewModels = _buildList(jsonString);
-      expect(viewModels, hasLength(5));
-      expect(viewModels[0].key, 'data');
-      expect(viewModels[0].value, isNotNull);
-      expect(viewModels[0].isRoot, isTrue);
-      expect(viewModels[0].isArray, isTrue);
-      expect(viewModels[0].childrenCount, 2);
-      expect(viewModels[0].treeDepth, 0);
-
-      expect(viewModels[1].key, '0');
-      expect(viewModels[1].value, isNotNull);
-      expect(viewModels[1].isRoot, isTrue);
-      expect(viewModels[1].isClass, isTrue);
-      expect(viewModels[1].isArray, isFalse);
-      expect(viewModels[1].childrenCount, 1);
-      expect(viewModels[1].treeDepth, 1);
-
-      expect(viewModels[2].key, '0.firstField');
-      expect(viewModels[2].value, isNotNull);
-      expect(viewModels[2].isRoot, isFalse);
-      expect(viewModels[2].treeDepth, 2);
-
-      expect(viewModels[3].key, '1');
-      expect(viewModels[3].value, isNotNull);
-      expect(viewModels[3].isRoot, isTrue);
-      expect(viewModels[3].isClass, isTrue);
-      expect(viewModels[3].isArray, isFalse);
-      expect(viewModels[3].childrenCount, 1);
-      expect(viewModels[3].treeDepth, 1);
-
-      expect(viewModels[4].key, '1.firstField');
-      expect(viewModels[4].value, isNotNull);
-      expect(viewModels[4].isRoot, isFalse);
-      expect(viewModels[4].treeDepth, 2);
-    });
-
-    test('builds a flat list from class with nested arrays', () async {
-      const jsonString = '''
-{
-    "firstClass": {
-        "firstClass.firstField": "firstField",
-        "firstClass.array": [
-            1,
-            2
-        ]
-    },
-    "secondClass": {
-        "secondClass.firstField": "firstField",
-        "secondClass.array": [
-            3,
-            4
-        ]
-    }
-}
-      ''';
-
-      final viewModels = _buildList(jsonString);
-      expect(viewModels, hasLength(10));
-      expect(viewModels[0].key, 'firstClass');
-      expect(viewModels[0].value, isNotNull);
-      expect(viewModels[0].isRoot, isTrue);
-      expect(viewModels[0].isClass, isTrue);
-      expect(viewModels[0].isArray, isFalse);
-      expect(viewModels[0].childrenCount, 2);
-      expect(viewModels[0].treeDepth, 0);
-
-      expect(viewModels[1].key, 'firstClass.firstField');
-      expect(viewModels[1].value, 'firstField');
-      expect(viewModels[1].isRoot, isFalse);
-      expect(viewModels[1].treeDepth, 1);
-
-      expect(viewModels[2].key, 'firstClass.array');
-      expect(viewModels[2].value, isNotNull);
-      expect(viewModels[2].isRoot, isTrue);
-      expect(viewModels[2].isArray, isTrue);
-      expect(viewModels[2].childrenCount, 2);
-      expect(viewModels[2].treeDepth, 1);
-
-      expect(viewModels[3].key, '0');
-      expect(viewModels[3].value, 1);
-      expect(viewModels[3].isRoot, isFalse);
-      expect(viewModels[3].treeDepth, 2);
-
-      expect(viewModels[4].key, '1');
-      expect(viewModels[4].value, 2);
-      expect(viewModels[4].isRoot, isFalse);
-      expect(viewModels[4].treeDepth, 2);
-
-      expect(viewModels[5].key, 'secondClass');
-      expect(viewModels[5].value, isNotNull);
-      expect(viewModels[5].isRoot, isTrue);
-      expect(viewModels[5].isClass, isTrue);
-      expect(viewModels[5].isArray, isFalse);
-      expect(viewModels[5].childrenCount, 2);
-      expect(viewModels[5].treeDepth, 0);
-
-      expect(viewModels[6].key, 'secondClass.firstField');
-      expect(viewModels[6].value, 'firstField');
-      expect(viewModels[6].isRoot, isFalse);
-      expect(viewModels[6].treeDepth, 1);
-
-      expect(viewModels[7].key, 'secondClass.array');
-      expect(viewModels[7].value, isNotNull);
-      expect(viewModels[7].isRoot, isTrue);
-      expect(viewModels[7].isArray, isTrue);
-      expect(viewModels[7].childrenCount, 2);
-      expect(viewModels[7].treeDepth, 1);
-
-      expect(viewModels[8].key, '0');
-      expect(viewModels[8].value, 3);
-      expect(viewModels[8].isRoot, isFalse);
-      expect(viewModels[8].treeDepth, 2);
-
-      expect(viewModels[9].key, '1');
-      expect(viewModels[9].value, 4);
-      expect(viewModels[9].isRoot, isFalse);
-      expect(viewModels[9].treeDepth, 2);
+        viewModel.highlight(false);
+        expect(viewModel.isHighlighted, isFalse);
+        expect(arrayValues[0].isHighlighted, isFalse);
+        expect(arrayValues[0].value['classProperty']!.isHighlighted, isFalse);
+      });
     });
   });
 }
