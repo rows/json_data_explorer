@@ -11,7 +11,7 @@ void main() {
 
   group('Flatten algorithm tests', () {
     group('Classes', () {
-      test('builds a flat list from a simple json', () async {
+      test('builds a flat list from a simple json', () {
         const jsonString = '''
 {
     "firstField": "firstField",
@@ -38,7 +38,7 @@ void main() {
         expect(viewModels[2].treeDepth, 0);
       });
 
-      test('builds a flat list from multiple json classes', () async {
+      test('builds a flat list from multiple json classes', () {
         const jsonString = '''
 {
     "firstClass": {
@@ -103,7 +103,7 @@ void main() {
         expect(viewModels[7].treeDepth, 1);
       });
 
-      test('builds a flat list from multiple nested json classes', () async {
+      test('builds a flat list from multiple nested json classes', () {
         const jsonString = '''
 {
     "firstClass": {
@@ -194,7 +194,7 @@ void main() {
     });
 
     group('Arrays', () {
-      test('builds a flat list from json array', () async {
+      test('builds a flat list from json array', () {
         const jsonString = '[1, 2]';
 
         final viewModels = _buildList(jsonString);
@@ -218,7 +218,7 @@ void main() {
         expect(viewModels[2].treeDepth, 1);
       });
 
-      test('builds a flat list from array of classes', () async {
+      test('builds a flat list from array of classes', () {
         const jsonString = '''
 [
     {
@@ -266,7 +266,7 @@ void main() {
         expect(viewModels[4].treeDepth, 2);
       });
 
-      test('builds a flat list from class with nested arrays', () async {
+      test('builds a flat list from class with nested arrays', () {
         const jsonString = '''
 {
     "firstClass": {

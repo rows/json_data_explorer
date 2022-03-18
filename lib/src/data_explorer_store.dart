@@ -478,8 +478,6 @@ class DataExplorerStore extends ChangeNotifier {
   ///
   /// [notifyListeners] is called to notify all registered listeners.
   Future buildNodes(dynamic jsonObject, {bool isAllCollapsed = false}) async {
-    // TODO: remove stopwatch and print.
-    Stopwatch stopwatch = Stopwatch()..start();
     final builtNodes = buildViewModelNodes(jsonObject);
     final flatList = flatten(builtNodes);
 
@@ -487,10 +485,9 @@ class DataExplorerStore extends ChangeNotifier {
     _displayNodes = List.from(flatList);
     if (isAllCollapsed) {
       collapseAll();
+    } else {
+      notifyListeners();
     }
-    notifyListeners();
-    print('Built ${flatList.length} nodes.');
-    print('executed in ${stopwatch.elapsed}.');
   }
 
   int _visibleChildrenCount(NodeViewModelState node) {

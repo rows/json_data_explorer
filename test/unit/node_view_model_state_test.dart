@@ -9,7 +9,7 @@ class MockCallbackFunction extends Mock {
 void main() {
   group('NodeViewModelState', () {
     group('Property', () {
-      test('build as a property', () async {
+      test('build as a property', () {
         final viewModel = NodeViewModelState.fromProperty(
           treeDepth: 1,
           key: 'key',
@@ -26,7 +26,7 @@ void main() {
         expect(viewModel.isCollapsed, isFalse);
       });
 
-      test('a property has no children nodes', () async {
+      test('a property has no children nodes', () {
         final viewModel = NodeViewModelState.fromProperty(
           treeDepth: 1,
           key: 'key',
@@ -50,7 +50,7 @@ void main() {
 
         viewModel.highlight(false);
         expect(viewModel.isHighlighted, isFalse);
-        expect(verify(() => listener.call()).callCount, 2);
+        verify(() => listener.call()).called(2);
       });
 
       test('collapse notifies listeners', () {
@@ -67,12 +67,12 @@ void main() {
 
         viewModel.expand();
         expect(viewModel.isCollapsed, isFalse);
-        expect(verify(() => listener.call()).callCount, 2);
+        verify(() => listener.call()).called(2);
       });
     });
 
     group('Class', () {
-      test('build as a class', () async {
+      test('build as a class', () {
         final classMap = {
           'propertyA': NodeViewModelState.fromProperty(
             treeDepth: 1,
@@ -102,7 +102,7 @@ void main() {
         expect(viewModel.isCollapsed, isFalse);
       });
 
-      test('children nodes', () async {
+      test('children nodes', () {
         final classMap = {
           'propertyA': NodeViewModelState.fromProperty(
             treeDepth: 1,
@@ -175,7 +175,7 @@ void main() {
     });
 
     group('Array', () {
-      test('build as an array', () async {
+      test('build as an array', () {
         final arrayValues = [
           NodeViewModelState.fromProperty(
             treeDepth: 1,
@@ -205,7 +205,7 @@ void main() {
         expect(viewModel.isCollapsed, isFalse);
       });
 
-      test('children nodes', () async {
+      test('children nodes', () {
         final arrayValues = [
           NodeViewModelState.fromProperty(
             treeDepth: 1,
