@@ -62,58 +62,54 @@ class _JsonAttribute extends StatelessWidget {
             (store) => store.searchResults.contains(node))
         : false;
 
-    // TODO: This decorated box won't exist. It is here just to highlight
-    // the search results during the SPIKE, we will have a better UI in the
-    // production version.
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: hasSearchResult ? Colors.lightGreen : null,
-      ),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (event) => node.highlight(true),
-        onExit: (event) => node.highlight(false),
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => _onTap(context),
-          child: AnimatedBuilder(
-            animation: node,
-            builder: (BuildContext context, Widget? child) => Padding(
-              padding: EdgeInsets.only(left: padding),
-              child: Row(
-                children: [
-                  if (node.isRoot)
-                    SizedBox(
-                      width: indentationPadding,
-                      // TODO: Configurable icons.
-                      child: node.isCollapsed
-                          ? const Icon(Icons.arrow_right)
-                          : const Icon(Icons.arrow_drop_down),
-                    ),
-                  // TODO: configurable theme.
-                  Text.rich(
-                    TextSpan(
-                      text: node.key,
-                      style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                      children: [
-                        const TextSpan(
-                          text: ' ',
-                        ),
-                        TextSpan(
-                          text: _valueDisplay(),
-                          style:
-                              Theme.of(context).textTheme.subtitle1!.copyWith(
-                                    color: _valueColor(),
-                                  ),
-                        ),
-                      ],
-                    ),
-                    textAlign: TextAlign.start,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (event) => node.highlight(true),
+      onExit: (event) => node.highlight(false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _onTap(context),
+        child: AnimatedBuilder(
+          animation: node,
+          builder: (BuildContext context, Widget? child) => Padding(
+            padding: EdgeInsets.only(left: padding),
+            child: Row(
+              children: [
+                if (node.isRoot)
+                  SizedBox(
+                    width: indentationPadding,
+                    // TODO: Configurable icons.
+                    child: node.isCollapsed
+                        ? const Icon(Icons.arrow_right)
+                        : const Icon(Icons.arrow_drop_down),
                   ),
-                ],
-              ),
+                // TODO: configurable theme.
+                _HighlightedText(
+                  text: '${node.key}: ',
+                  highlightedText: searchTerm,
+                  style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                  highlightedStyle:
+                      Theme.of(context).textTheme.subtitle1!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            backgroundColor: Colors.deepPurpleAccent,
+                          ),
+                ),
+                _HighlightedText(
+                  text: _valueDisplay(),
+                  highlightedText: searchTerm,
+                  style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                        color: _valueColor(),
+                      ),
+                  highlightedStyle:
+                      Theme.of(context).textTheme.subtitle1!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: _valueColor(),
+                            backgroundColor: Colors.deepPurpleAccent,
+                          ),
+                ),
+              ],
             ),
           ),
         ),
@@ -147,5 +143,69 @@ class _JsonAttribute extends StatelessWidget {
       return Colors.grey;
     }
     return Colors.redAccent;
+  }
+}
+
+/// Highlights found occurrences of [highlightedText] with [highlightedStyle]
+/// in [text].
+class _HighlightedText extends StatelessWidget {
+  final String text;
+  final String highlightedText;
+  final TextStyle style;
+  final TextStyle highlightedStyle;
+  final TextAlign textAlign;
+
+  const _HighlightedText({
+    Key? key,
+    required this.text,
+    required this.highlightedText,
+    required this.style,
+    required this.highlightedStyle,
+    this.textAlign = TextAlign.start,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final lowerCaseText = text.toLowerCase();
+    final lowerCaseQuery = highlightedText.toLowerCase();
+    if (highlightedText.isEmpty || !lowerCaseText.contains(lowerCaseQuery)) {
+      return Text(text, style: style);
+    }
+
+    final spans = <TextSpan>[];
+    var start = 0;
+
+    while (true) {
+      var index = lowerCaseText.indexOf(lowerCaseQuery, start);
+      index = index >= 0 ? index : text.length;
+
+      if (start != index) {
+        spans.add(
+          TextSpan(
+            text: text.substring(start, index),
+            style: style,
+          ),
+        );
+      }
+
+      if (index >= text.length) {
+        break;
+      }
+
+      spans.add(
+        TextSpan(
+          text: text.substring(index, index + highlightedText.length),
+          style: highlightedStyle,
+        ),
+      );
+      start = index + highlightedText.length;
+    }
+
+    return RichText(
+      text: TextSpan(
+        children: spans,
+      ),
+      textAlign: textAlign,
+    );
   }
 }

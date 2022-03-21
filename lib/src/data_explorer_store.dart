@@ -180,6 +180,11 @@ class NodeViewModelState extends ChangeNotifier {
   }
 }
 
+/// Builds [NodeViewModelState] nodes based on a decoded json object.
+///
+/// The return [Map<String, NodeViewModelState>] has the same structure as
+/// the decoded [object], except that every class, array and property is now
+/// a [NodeViewModelState].
 Map<String, NodeViewModelState> buildViewModelNodes(dynamic object) {
   if (object is Map<String, dynamic>) {
     return _buildClassNodes(object: object);
