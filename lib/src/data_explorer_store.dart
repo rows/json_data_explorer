@@ -352,6 +352,7 @@ class DataExplorerStore extends ChangeNotifier {
   // TODO: maybe the search should be in another store.
   final _searchResults = <NodeViewModelState>[];
   String _searchTerm = '';
+  var _searchNodeFocusIndex = 0;
 
   /// Gets the list of nodes to be displayed.
   ///
@@ -371,6 +372,17 @@ class DataExplorerStore extends ChangeNotifier {
   /// The returned [Iterable] is closed for modification.
   Iterable<NodeViewModelState> get searchResults =>
       UnmodifiableListView(_searchResults);
+
+  /// Gets the current focused search node index.
+  /// If there are search results, this is going to be an index of
+  /// [searchResults] list. It always going to be 0 by default.
+  ///
+  /// Use [focusNextSearchResult] and [focusPreviousSearchResult] to change the
+  /// current focused search node.
+  ///
+  /// [notifyListeners] is called whenever this value changes.
+  /// The returned [Iterable] is closed for modification.
+  int get searchNodeFocusIndex => _searchNodeFocusIndex;
 
   /// Collapses the given [node] so its children won't be visible.
   ///
@@ -469,10 +481,46 @@ class DataExplorerStore extends ChangeNotifier {
   void search(String term) {
     _searchTerm = term.toLowerCase();
     _searchResults.clear();
+    _searchNodeFocusIndex = 0;
     notifyListeners();
 
     if (term.isNotEmpty) {
       _doSearch();
+    }
+  }
+
+  void focusNextSearchResult() {
+    if (_searchResults.isNotEmpty &&
+        _searchNodeFocusIndex < _searchResults.length - 1) {
+      _searchNodeFocusIndex += 1;
+      notifyListeners();
+
+      final index =
+          _displayNodes.indexOf(_searchResults[_searchNodeFocusIndex]);
+      if (index != -1) {
+        itemScrollController.scrollTo(
+          index: index,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    }
+  }
+
+  void focusPreviousSearchResult() {
+    if (_searchResults.isNotEmpty && _searchNodeFocusIndex > 0) {
+      _searchNodeFocusIndex -= 1;
+      notifyListeners();
+
+      final index =
+          _displayNodes.indexOf(_searchResults[_searchNodeFocusIndex]);
+      if (index != -1) {
+        itemScrollController.scrollTo(
+          index: index,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOutCubic,
+        );
+      }
     }
   }
 
@@ -520,18 +568,7 @@ class DataExplorerStore extends ChangeNotifier {
           }
         }
       }
-
-      if (_searchResults.isNotEmpty) {
-        notifyListeners();
-        final index = _displayNodes.indexOf(_searchResults.first);
-        if (index != -1) {
-          itemScrollController.scrollTo(
-            index: _displayNodes.indexOf(_searchResults.first),
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOutCubic,
-          );
-        }
-      }
+      notifyListeners();
     });
   }
 }

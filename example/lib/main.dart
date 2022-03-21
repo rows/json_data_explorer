@@ -148,7 +148,18 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                       width: 8,
                     ),
                     if (state.searchResults.isNotEmpty)
-                      Text('${state.searchResults.length} Results'),
+                      Text(
+                          '${state.searchNodeFocusIndex + 1} of ${state.searchResults.length}'),
+                    if (state.searchResults.isNotEmpty)
+                      IconButton(
+                        onPressed: () => store.focusPreviousSearchResult(),
+                        icon: const Icon(Icons.arrow_drop_up),
+                      ),
+                    if (state.searchResults.isNotEmpty)
+                      IconButton(
+                        onPressed: () => store.focusNextSearchResult(),
+                        icon: const Icon(Icons.arrow_drop_down),
+                      ),
                   ],
                 ),
                 const SizedBox(

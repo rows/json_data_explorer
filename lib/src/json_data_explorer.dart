@@ -57,10 +57,10 @@ class _JsonAttribute extends StatelessWidget {
 
     final searchTerm =
         context.select<DataExplorerStore, String>((store) => store.searchTerm);
-    final hasSearchResult = searchTerm.isNotEmpty
-        ? context.select<DataExplorerStore, bool>(
-            (store) => store.searchResults.contains(node))
-        : false;
+    final isSearchFocused = context.select<DataExplorerStore, bool>((store) =>
+        store.searchResults.isNotEmpty
+            ? store.searchResults.elementAt(store.searchNodeFocusIndex) == node
+            : false);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -93,7 +93,9 @@ class _JsonAttribute extends StatelessWidget {
                   highlightedStyle:
                       Theme.of(context).textTheme.subtitle1!.copyWith(
                             fontWeight: FontWeight.bold,
-                            backgroundColor: Colors.deepPurpleAccent,
+                            backgroundColor: isSearchFocused
+                                ? Colors.deepPurpleAccent
+                                : Colors.grey,
                           ),
                 ),
                 _HighlightedText(
@@ -106,7 +108,9 @@ class _JsonAttribute extends StatelessWidget {
                       Theme.of(context).textTheme.subtitle1!.copyWith(
                             fontWeight: FontWeight.bold,
                             color: _valueColor(),
-                            backgroundColor: Colors.deepPurpleAccent,
+                            backgroundColor: isSearchFocused
+                                ? Colors.deepPurpleAccent
+                                : Colors.grey,
                           ),
                 ),
               ],
