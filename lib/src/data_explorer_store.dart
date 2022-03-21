@@ -381,7 +381,6 @@ class DataExplorerStore extends ChangeNotifier {
   /// current focused search node.
   ///
   /// [notifyListeners] is called whenever this value changes.
-  /// The returned [Iterable] is closed for modification.
   int get searchNodeFocusIndex => _searchNodeFocusIndex;
 
   /// Collapses the given [node] so its children won't be visible.
@@ -489,6 +488,12 @@ class DataExplorerStore extends ChangeNotifier {
     }
   }
 
+  /// Sets the focus on the next search result.
+  ///
+  /// Does nothing if there are no results or the last node is already focused.
+  ///
+  /// See also:
+  /// * [focusPreviousSearchResult]
   void focusNextSearchResult() {
     if (_searchResults.isNotEmpty &&
         _searchNodeFocusIndex < _searchResults.length - 1) {
@@ -507,6 +512,12 @@ class DataExplorerStore extends ChangeNotifier {
     }
   }
 
+  /// Sets the focus on the previous search result.
+  ///
+  /// Does nothing if there are no results or the first node is already focused.
+  ///
+  /// See also:
+  /// * [focusNextSearchResult]
   void focusPreviousSearchResult() {
     if (_searchResults.isNotEmpty && _searchNodeFocusIndex > 0) {
       _searchNodeFocusIndex -= 1;
