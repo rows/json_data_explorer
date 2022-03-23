@@ -8,13 +8,16 @@ class JsonDataExplorer extends StatelessWidget {
   final Iterable<NodeViewModelState> nodes;
   final ItemScrollController? itemScrollController;
   final ItemPositionsListener? itemPositionsListener;
+  final DataExplorerTheme theme;
 
   const JsonDataExplorer({
     Key? key,
     required this.nodes,
     this.itemScrollController,
     this.itemPositionsListener,
-  }) : super(key: key);
+    DataExplorerTheme? theme,
+  })  : theme = theme ?? DataExplorerTheme.defaultTheme,
+        super(key: key);
 
   @override
   Widget build(BuildContext context) => ScrollablePositionedList.builder(
@@ -34,13 +37,11 @@ class JsonDataExplorer extends StatelessWidget {
           ),
           child: _JsonAttribute(
             node: nodes.elementAt(index),
-            valueStyle: Theme.of(context).textTheme.subtitle1!.copyWith(
-                  fontSize: 18,
-                ),
-            attributeKeyStyle: Theme.of(context).textTheme.subtitle1!.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+            valueStyle: theme.valueTextStyle ??
+                DataExplorerTheme.defaultTheme.valueTextStyle!,
+            attributeKeyStyle: theme.keyTextStyle ??
+                DataExplorerTheme.defaultTheme.keyTextStyle!,
+            indentationLineColor: theme.indentationLineColor,
           ),
         ),
       );
@@ -51,6 +52,7 @@ class _JsonAttribute extends StatelessWidget {
   final double indentationPadding;
   final TextStyle attributeKeyStyle;
   final TextStyle valueStyle;
+  final Color indentationLineColor;
 
   const _JsonAttribute({
     Key? key,
@@ -58,6 +60,7 @@ class _JsonAttribute extends StatelessWidget {
     required this.attributeKeyStyle,
     required this.valueStyle,
     this.indentationPadding = 8.0,
+    this.indentationLineColor = Colors.grey,
   }) : super(key: key);
 
   @override
@@ -85,11 +88,14 @@ class _JsonAttribute extends StatelessWidget {
           /// performance.
           builder: (context, child) => IntrinsicHeight(
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: node.isRoot
+                  ? CrossAxisAlignment.center
+                  : CrossAxisAlignment.start,
               children: [
                 _Indentation(
                   node: node,
                   indentationPadding: indentationPadding,
+                  lineColor: indentationLineColor,
                 ),
                 if (node.isRoot)
                   node.isCollapsed
@@ -115,21 +121,18 @@ class _JsonAttribute extends StatelessWidget {
                         isSearchFocused ? Colors.deepPurpleAccent : Colors.grey,
                   ),
                 ),
-                Expanded(
-                  child: _HighlightedText(
-                    text: _valueDisplay(),
-                    highlightedText: searchTerm,
-                    style: valueStyle.copyWith(
-                      color: _valueColor(),
-                    ),
-                    highlightedStyle: valueStyle.copyWith(
-                      color: _valueColor(),
-                      backgroundColor: isSearchFocused
-                          ? Colors.deepPurpleAccent
-                          : Colors.grey,
+                  Expanded(
+                    child: _HighlightedText(
+                      text: node.value.toString(),
+                      highlightedText: searchTerm,
+                      style: valueStyle,
+                      highlightedStyle: valueStyle.copyWith(
+                        backgroundColor: isSearchFocused
+                            ? Colors.deepPurpleAccent
+                            : Colors.grey,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
