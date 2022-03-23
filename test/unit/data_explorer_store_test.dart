@@ -89,6 +89,8 @@ void main() {
       expect(store.displayNodes, hasLength(2));
       expect(store.displayNodes.elementAt(0).key, 'firstClass');
       expect(store.displayNodes.elementAt(1).key, 'secondClass');
+      expect(store.areAllExpanded, isFalse);
+      expect(store.areAllCollapsed(), isTrue);
     });
 
     test('build nodes notifies listeners', () {
@@ -121,6 +123,9 @@ void main() {
       expect(store.displayNodes.elementAt(0).key, 'firstClass');
       expect(store.displayNodes.elementAt(1).key, 'secondClass');
       verify(() => listener.call()).called(1);
+
+      expect(store.areAllExpanded, isFalse);
+      expect(store.areAllCollapsed(), isTrue);
     });
 
     test('expand all nodes', () {
@@ -135,6 +140,9 @@ void main() {
       expect(store.displayNodes.elementAt(0).key, 'firstClass');
       expect(store.displayNodes.elementAt(24).key, 'secondClass');
       verify(() => listener.call()).called(1);
+
+      expect(store.areAllExpanded, isTrue);
+      expect(store.areAllCollapsed(), isFalse);
     });
 
     test('collapse node', () {
@@ -151,6 +159,9 @@ void main() {
       expect(store.displayNodes.elementAt(0).key, 'firstClass');
       expect(store.displayNodes.elementAt(1).key, 'secondClass');
       verify(() => listener.call()).called(1);
+
+      expect(store.areAllExpanded, isFalse);
+      expect(store.areAllCollapsed(), isFalse);
     });
 
     test("collapse won't do anything for non root nodes", () {
@@ -197,6 +208,9 @@ void main() {
       expect(store.displayNodes.elementAt(0).key, 'firstClass');
       expect(store.displayNodes.elementAt(7).key, 'secondClass');
       verify(() => listener.call()).called(1);
+
+      expect(store.areAllExpanded, isFalse);
+      expect(store.areAllCollapsed(), isFalse);
     });
 
     test("expand won't do anything for non root nodes", () {
