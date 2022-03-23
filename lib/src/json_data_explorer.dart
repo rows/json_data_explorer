@@ -7,11 +7,12 @@ import 'data_explorer_store.dart';
 
 /// Signature for a function that creates a widget based on a
 /// [NodeViewModelState] state.
-///
-/// Used by [_JsonAttribute.rootInformationBuilder].
-///
 typedef NodeBuilder = Widget Function(
     BuildContext context, NodeViewModelState node);
+
+/// Signature for a function that takes a generic value and converts it to a
+/// string.
+typedef Formatter = String Function(dynamic value);
 
 class JsonDataExplorer extends StatelessWidget {
   final Iterable<NodeViewModelState> nodes;
@@ -32,6 +33,22 @@ class JsonDataExplorer extends StatelessWidget {
   /// collapsed nodes and [Icons.arrow_drop_down] for expanded nodes.
   final NodeBuilder? collapsableToggleBuilder;
 
+  /// Customizes how class/array names are formatted as string.
+  ///
+  /// By default the class and array names are displayed as follows: 'name:'
+  final Formatter? rootNameFormatter;
+
+  /// Customizes how property names are formatted as string.
+  ///
+  /// By default the property names are displayed as follows: 'name:'
+  final Formatter? propertyNameFormatter;
+
+  /// Customizes how property values are formatted as string.
+  ///
+  /// By default the value is converted to a string by calling the .toString()
+  /// method.
+  final Formatter? valueFormatter;
+
   const JsonDataExplorer({
     Key? key,
     required this.nodes,
@@ -39,6 +56,9 @@ class JsonDataExplorer extends StatelessWidget {
     this.itemPositionsListener,
     this.rootInformationBuilder,
     this.collapsableToggleBuilder,
+    this.rootNameFormatter,
+    this.propertyNameFormatter,
+    this.valueFormatter,
     DataExplorerTheme? theme,
   })  : theme = theme ?? DataExplorerTheme.defaultTheme,
         super(key: key);
@@ -62,6 +82,9 @@ class JsonDataExplorer extends StatelessWidget {
             node: nodes.elementAt(index),
             rootInformationBuilder: rootInformationBuilder,
             collapsableToggleBuilder: collapsableToggleBuilder,
+            rootNameFormatter: rootNameFormatter,
+            propertyNameFormatter: propertyNameFormatter,
+            valueFormatter: valueFormatter,
             valueStyle: theme.valueTextStyle ??
                 DataExplorerTheme.defaultTheme.valueTextStyle!,
             attributeKeyStyle: theme.keyTextStyle ??
@@ -91,6 +114,22 @@ class _JsonAttribute extends StatelessWidget {
   /// collapsed nodes and [Icons.arrow_drop_down] for expanded nodes.
   final NodeBuilder? collapsableToggleBuilder;
 
+  /// Customizes how class/array names are formatted as string.
+  ///
+  /// By default the class and array names are displayed as follows: 'name:'
+  final Formatter? rootNameFormatter;
+
+  /// Customizes how property names are formatted as string.
+  ///
+  /// By default the property names are displayed as follows: 'name:'
+  final Formatter? propertyNameFormatter;
+
+  /// Customizes how property values are formatted as string.
+  ///
+  /// By default the value is converted to a string by calling the .toString()
+  /// method.
+  final Formatter? valueFormatter;
+
   /// Color of the indentation guide lines.
   final Color indentationLineColor;
 
@@ -102,6 +141,9 @@ class _JsonAttribute extends StatelessWidget {
     this.indentationPadding = 8.0,
     this.rootInformationBuilder,
     this.collapsableToggleBuilder,
+    this.rootNameFormatter,
+    this.propertyNameFormatter,
+    this.valueFormatter,
     this.indentationLineColor = Colors.grey,
   }) : super(key: key);
 
@@ -146,7 +188,7 @@ class _JsonAttribute extends StatelessWidget {
                         _defaultCollapsableToggleBuilder(context, node),
                   ),
                 _HighlightedText(
-                  text: '${node.key}: ',
+                  text: _keyName(),
                   highlightedText: searchTerm,
                   style: attributeKeyStyle,
                   highlightedStyle: attributeKeyStyle.copyWith(
@@ -154,13 +196,15 @@ class _JsonAttribute extends StatelessWidget {
                         isSearchFocused ? Colors.deepPurpleAccent : Colors.grey,
                   ),
                 ),
+                const SizedBox(width: 4),
                 if (node.isRoot)
                   rootInformationBuilder?.call(context, node) ??
                       const SizedBox()
                 else
                   Expanded(
                     child: _HighlightedText(
-                      text: node.value.toString(),
+                      text: valueFormatter?.call(node.value) ??
+                          node.value.toString(),
                       highlightedText: searchTerm,
                       style: valueStyle,
                       highlightedStyle: valueStyle.copyWith(
@@ -188,6 +232,13 @@ class _JsonAttribute extends StatelessWidget {
     } else {
       dataExplorerStore.collapseNode(node);
     }
+  }
+
+  String _keyName() {
+    if (node.isRoot) {
+      return rootNameFormatter?.call(node.key) ?? '${node.key}:';
+    }
+    return propertyNameFormatter?.call(node.key) ?? '${node.key}:';
   }
 
   /// Default value for [collapsableToggleBuilder]

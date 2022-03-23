@@ -226,6 +226,9 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                       child: const Icon(Icons.arrow_drop_down),
                     ),
 
+                    /// Creates a custom format for classes and array names.
+                    rootNameFormatter: (name) => '$name',
+
                     /// Theme definitions of the json data explorer
                     theme: DataExplorerTheme(
                       keyTextStyle: GoogleFonts.inconsolata(
