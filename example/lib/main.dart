@@ -176,7 +176,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                     ),
                     TextButton(
                       onPressed:
-                          state.areAllCollapsed ? null : state.collapseAll,
+                          state.areAllCollapsed() ? null : state.collapseAll,
                       child: const Text('Collapse All'),
                     ),
                   ],
