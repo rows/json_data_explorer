@@ -238,6 +238,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                         fontSize: 16,
                       ),
                       indentationLineColor: const Color(0xFFE1E1E1),
+                      highlightColor: const Color(0xFFF1F1F1),
                     ),
                   ),
                 ),

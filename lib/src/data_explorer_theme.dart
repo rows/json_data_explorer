@@ -9,13 +9,19 @@ class DataExplorerTheme {
   /// Text style to display the values of of json attributes.
   final TextStyle? valueTextStyle;
 
-  /// Color of the indentation lines.
+  /// Indentation lines color.
   final Color indentationLineColor;
+
+  /// Cursor hover highlight color.
+  ///
+  /// null to disable the highlight.
+  final Color? highlightColor;
 
   const DataExplorerTheme({
     this.keyTextStyle,
     this.valueTextStyle,
     this.indentationLineColor = Colors.grey,
+    this.highlightColor,
   });
 
   static const defaultTheme = DataExplorerTheme(
@@ -33,10 +39,14 @@ class DataExplorerTheme {
   DataExplorerTheme copyWith({
     TextStyle? keyTextStyle,
     TextStyle? valueTextStyle,
+    Color? indentationLineColor,
+    Color? highlightColor,
   }) =>
       DataExplorerTheme(
         keyTextStyle: keyTextStyle ?? this.keyTextStyle,
         valueTextStyle: valueTextStyle ?? this.valueTextStyle,
+        indentationLineColor: indentationLineColor ?? this.indentationLineColor,
+        highlightColor: highlightColor ?? this.highlightColor,
       );
 
   @override
@@ -46,7 +56,8 @@ class DataExplorerTheme {
     return other is DataExplorerTheme &&
         keyTextStyle == other.keyTextStyle &&
         valueTextStyle == other.valueTextStyle &&
-        indentationLineColor == other.indentationLineColor;
+        indentationLineColor == other.indentationLineColor &&
+        highlightColor == other.highlightColor;
   }
 
   @override
@@ -54,5 +65,6 @@ class DataExplorerTheme {
         keyTextStyle,
         valueTextStyle,
         indentationLineColor,
+        highlightColor,
       );
 }

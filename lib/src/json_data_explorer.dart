@@ -52,9 +52,8 @@ class JsonDataExplorer extends StatelessWidget {
           animation: nodes.elementAt(index),
           builder: (context, child) => DecoratedBox(
             decoration: BoxDecoration(
-              // TODO: Configurable color.
               color: nodes.elementAt(index).isHighlighted
-                  ? Colors.deepPurpleAccent.withOpacity(0.2)
+                  ? theme.highlightColor
                   : null,
             ),
             child: child,
