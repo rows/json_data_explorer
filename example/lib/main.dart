@@ -216,6 +216,16 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                       ),
                     ),
 
+                    /// Build an animated collapse/expand indicator. Implicitly
+                    /// animates the indicator when
+                    /// [NodeViewModelState.isCollapsed] changes.
+                    collapsableToggleBuilder: (context, node) =>
+                        AnimatedRotation(
+                      turns: node.isCollapsed ? -0.25 : 0,
+                      duration: const Duration(milliseconds: 300),
+                      child: const Icon(Icons.arrow_drop_down),
+                    ),
+
                     /// Theme definitions of the json data explorer
                     theme: DataExplorerTheme(
                       keyTextStyle: GoogleFonts.inconsolata(

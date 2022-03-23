@@ -26,12 +26,19 @@ class JsonDataExplorer extends StatelessWidget {
   /// for example.
   final NodeBuilder? rootInformationBuilder;
 
+  /// Build the expand/collapse icons in root nodes.
+  ///
+  /// If this builder is null, a material [Icons.arrow_right] is displayed for
+  /// collapsed nodes and [Icons.arrow_drop_down] for expanded nodes.
+  final NodeBuilder? collapsableToggleBuilder;
+
   const JsonDataExplorer({
     Key? key,
     required this.nodes,
     this.itemScrollController,
     this.itemPositionsListener,
     this.rootInformationBuilder,
+    this.collapsableToggleBuilder,
     DataExplorerTheme? theme,
   })  : theme = theme ?? DataExplorerTheme.defaultTheme,
         super(key: key);
@@ -54,12 +61,13 @@ class JsonDataExplorer extends StatelessWidget {
           ),
           child: _JsonAttribute(
             node: nodes.elementAt(index),
+            rootInformationBuilder: rootInformationBuilder,
+            collapsableToggleBuilder: collapsableToggleBuilder,
             valueStyle: theme.valueTextStyle ??
                 DataExplorerTheme.defaultTheme.valueTextStyle!,
             attributeKeyStyle: theme.keyTextStyle ??
                 DataExplorerTheme.defaultTheme.keyTextStyle!,
             indentationLineColor: theme.indentationLineColor,
-            rootInformationBuilder: rootInformationBuilder,
           ),
         ),
       );
@@ -78,6 +86,13 @@ class _JsonAttribute extends StatelessWidget {
   /// for example.
   final NodeBuilder? rootInformationBuilder;
 
+  /// Build the expand/collapse icons in root nodes.
+  ///
+  /// If this builder is null, a material [Icons.arrow_right] is displayed for
+  /// collapsed nodes and [Icons.arrow_drop_down] for expanded nodes.
+  final NodeBuilder? collapsableToggleBuilder;
+
+  /// Color of the indentation guide lines.
   final Color indentationLineColor;
 
   const _JsonAttribute({
@@ -87,6 +102,7 @@ class _JsonAttribute extends StatelessWidget {
     required this.valueStyle,
     this.indentationPadding = 8.0,
     this.rootInformationBuilder,
+    this.collapsableToggleBuilder,
     this.indentationLineColor = Colors.grey,
   }) : super(key: key);
 
@@ -125,19 +141,11 @@ class _JsonAttribute extends StatelessWidget {
                   lineColor: indentationLineColor,
                 ),
                 if (node.isRoot)
-                  node.isCollapsed
-                      ? const SizedBox(
-                          width: 24,
-                          child: Icon(
-                            Icons.arrow_right,
-                          ),
-                        )
-                      : const SizedBox(
-                          width: 24,
-                          child: Icon(
-                            Icons.arrow_drop_down,
-                          ),
-                        ),
+                  SizedBox(
+                    width: 24,
+                    child: collapsableToggleBuilder?.call(context, node) ??
+                        _defaultCollapsableToggleBuilder(context, node),
+                  ),
                 _HighlightedText(
                   text: '${node.key}: ',
                   highlightedText: searchTerm,
@@ -182,6 +190,20 @@ class _JsonAttribute extends StatelessWidget {
       dataExplorerStore.collapseNode(node);
     }
   }
+
+  /// Default value for [collapsableToggleBuilder]
+  ///
+  /// A material [Icons.arrow_right] is displayed for collapsed nodes and
+  /// [Icons.arrow_drop_down] for expanded nodes.
+  static Widget _defaultCollapsableToggleBuilder(
+          BuildContext context, NodeViewModelState node) =>
+      node.isCollapsed
+          ? const Icon(
+              Icons.arrow_right,
+            )
+          : const Icon(
+              Icons.arrow_drop_down,
+            );
 }
 
 /// Creates the indentation lines and padding of each node depending on its
