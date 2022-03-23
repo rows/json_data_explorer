@@ -90,6 +90,9 @@ class JsonDataExplorer extends StatelessWidget {
             attributeKeyStyle: theme.keyTextStyle ??
                 DataExplorerTheme.defaultTheme.keyTextStyle!,
             indentationLineColor: theme.indentationLineColor,
+            indentationPadding: theme.indentationPadding,
+            propertyIndentationPaddingFactor:
+                theme.propertyIndentationPaddingFactor,
           ),
         ),
       );
@@ -133,12 +136,17 @@ class _JsonAttribute extends StatelessWidget {
   /// Color of the indentation guide lines.
   final Color indentationLineColor;
 
+  /// An extra factor applied on [indentationPadding] used when rendering
+  /// properties.
+  final double propertyIndentationPaddingFactor;
+
   const _JsonAttribute({
     Key? key,
     required this.node,
     required this.attributeKeyStyle,
     required this.valueStyle,
     this.indentationPadding = 8.0,
+    this.propertyIndentationPaddingFactor = 4,
     this.rootInformationBuilder,
     this.collapsableToggleBuilder,
     this.rootNameFormatter,
@@ -179,6 +187,7 @@ class _JsonAttribute extends StatelessWidget {
                 _Indentation(
                   node: node,
                   indentationPadding: indentationPadding,
+                  propertyPaddingFactor: propertyIndentationPaddingFactor,
                   lineColor: indentationLineColor,
                 ),
                 if (node.isRoot)
@@ -296,7 +305,9 @@ class _Indentation extends StatelessWidget {
           ),
         if (!node.isRoot)
           SizedBox(
-            width: indentationPadding * propertyPaddingFactor,
+            width: node.treeDepth > 0
+                ? indentationPadding * propertyPaddingFactor
+                : indentationPadding,
           ),
         if (node.isRoot && !node.isCollapsed) ...[
           Align(

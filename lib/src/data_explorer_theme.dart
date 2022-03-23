@@ -12,6 +12,13 @@ class DataExplorerTheme {
   /// Indentation lines color.
   final Color indentationLineColor;
 
+  /// Padding used to indent nodes.
+  final double indentationPadding;
+
+  /// An extra factor applied on [indentationPadding] used when rendering
+  /// properties.
+  final double propertyIndentationPaddingFactor;
+
   /// Cursor hover highlight color.
   ///
   /// null to disable the highlight.
@@ -22,8 +29,11 @@ class DataExplorerTheme {
     this.valueTextStyle,
     this.indentationLineColor = Colors.grey,
     this.highlightColor,
+    this.indentationPadding = 8.0,
+    this.propertyIndentationPaddingFactor = 4,
   });
 
+  /// Default theme used if no theme is set.
   static const defaultTheme = DataExplorerTheme(
     keyTextStyle: TextStyle(
       fontSize: 14,
@@ -41,12 +51,17 @@ class DataExplorerTheme {
     TextStyle? valueTextStyle,
     Color? indentationLineColor,
     Color? highlightColor,
+    double? indentationPadding,
+    double? propertyIndentationPaddingFactor,
   }) =>
       DataExplorerTheme(
         keyTextStyle: keyTextStyle ?? this.keyTextStyle,
         valueTextStyle: valueTextStyle ?? this.valueTextStyle,
         indentationLineColor: indentationLineColor ?? this.indentationLineColor,
         highlightColor: highlightColor ?? this.highlightColor,
+        indentationPadding: indentationPadding ?? this.indentationPadding,
+        propertyIndentationPaddingFactor: propertyIndentationPaddingFactor ??
+            this.propertyIndentationPaddingFactor,
       );
 
   @override
@@ -57,7 +72,10 @@ class DataExplorerTheme {
         keyTextStyle == other.keyTextStyle &&
         valueTextStyle == other.valueTextStyle &&
         indentationLineColor == other.indentationLineColor &&
-        highlightColor == other.highlightColor;
+        highlightColor == other.highlightColor &&
+        indentationPadding == other.indentationPadding &&
+        propertyIndentationPaddingFactor ==
+            other.propertyIndentationPaddingFactor;
   }
 
   @override
@@ -66,5 +84,7 @@ class DataExplorerTheme {
         valueTextStyle,
         indentationLineColor,
         highlightColor,
+        indentationPadding,
+        propertyIndentationPaddingFactor,
       );
 }
