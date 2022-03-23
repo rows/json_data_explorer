@@ -7,4 +7,4 @@ version:
   revision: b101bfe32f634566e7cb2791a9efe19cf8828b15
   channel: beta
 
-project_type: package
+project_type: app
