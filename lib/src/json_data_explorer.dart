@@ -34,6 +34,13 @@ class JsonDataExplorer extends StatelessWidget {
           ),
           child: _JsonAttribute(
             node: nodes.elementAt(index),
+            valueStyle: Theme.of(context).textTheme.subtitle1!.copyWith(
+                  fontSize: 18,
+                ),
+            attributeKeyStyle: Theme.of(context).textTheme.subtitle1!.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ),
       );
@@ -42,19 +49,19 @@ class JsonDataExplorer extends StatelessWidget {
 class _JsonAttribute extends StatelessWidget {
   final NodeViewModelState node;
   final double indentationPadding;
+  final TextStyle attributeKeyStyle;
+  final TextStyle valueStyle;
 
   const _JsonAttribute({
     Key? key,
     required this.node,
-    this.indentationPadding = 16.0,
+    required this.attributeKeyStyle,
+    required this.valueStyle,
+    this.indentationPadding = 8.0,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final padding = node.isRoot && node.treeDepth > 1
-        ? (node.treeDepth - 1) * indentationPadding
-        : node.treeDepth * indentationPadding;
-
     final searchTerm =
         context.select<DataExplorerStore, String>((store) => store.searchTerm);
     final isSearchFocused = context.select<DataExplorerStore, bool>((store) =>
@@ -71,47 +78,57 @@ class _JsonAttribute extends StatelessWidget {
         onTap: () => _onTap(context),
         child: AnimatedBuilder(
           animation: node,
-          builder: (BuildContext context, Widget? child) => Padding(
-            padding: EdgeInsets.only(left: padding),
+
+          /// IntrinsicHeight is not the best solution for this, the performance
+          /// hit that we measured is ok for now. We will revisit this in the
+          /// future if we fill that we need to improve the node rendering
+          /// performance.
+          builder: (context, child) => IntrinsicHeight(
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _Indentation(
+                  node: node,
+                  indentationPadding: indentationPadding,
+                ),
                 if (node.isRoot)
-                  SizedBox(
-                    width: indentationPadding,
-                    // TODO: Configurable icons.
-                    child: node.isCollapsed
-                        ? const Icon(Icons.arrow_right)
-                        : const Icon(Icons.arrow_drop_down),
-                  ),
+                  node.isCollapsed
+                      ? const SizedBox(
+                          width: 24,
+                          child: Icon(
+                            Icons.arrow_right,
+                          ),
+                        )
+                      : const SizedBox(
+                          width: 24,
+                          child: Icon(
+                            Icons.arrow_drop_down,
+                          ),
+                        ),
                 // TODO: configurable theme.
                 _HighlightedText(
                   text: '${node.key}: ',
                   highlightedText: searchTerm,
-                  style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                  highlightedStyle:
-                      Theme.of(context).textTheme.subtitle1!.copyWith(
-                            fontWeight: FontWeight.bold,
-                            backgroundColor: isSearchFocused
-                                ? Colors.deepPurpleAccent
-                                : Colors.grey,
-                          ),
+                  style: attributeKeyStyle,
+                  highlightedStyle: attributeKeyStyle.copyWith(
+                    backgroundColor:
+                        isSearchFocused ? Colors.deepPurpleAccent : Colors.grey,
+                  ),
                 ),
-                _HighlightedText(
-                  text: _valueDisplay(),
-                  highlightedText: searchTerm,
-                  style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                        color: _valueColor(),
-                      ),
-                  highlightedStyle:
-                      Theme.of(context).textTheme.subtitle1!.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: _valueColor(),
-                            backgroundColor: isSearchFocused
-                                ? Colors.deepPurpleAccent
-                                : Colors.grey,
-                          ),
+                Expanded(
+                  child: _HighlightedText(
+                    text: _valueDisplay(),
+                    highlightedText: searchTerm,
+                    style: valueStyle.copyWith(
+                      color: _valueColor(),
+                    ),
+                    highlightedStyle: valueStyle.copyWith(
+                      color: _valueColor(),
+                      backgroundColor: isSearchFocused
+                          ? Colors.deepPurpleAccent
+                          : Colors.grey,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -147,6 +164,74 @@ class _JsonAttribute extends StatelessWidget {
       return Colors.grey;
     }
     return Colors.redAccent;
+  }
+}
+
+/// Creates the indentation lines and padding of each node depending on its
+/// [node.treeDepth] and whether or not the node is a root node.
+class _Indentation extends StatelessWidget {
+  /// Current node view model
+  final NodeViewModelState node;
+
+  /// The padding of each indentation, this change the spacing between each
+  /// [node.treeDepth] and the spacing between lines.
+  final double indentationPadding;
+
+  /// Color used to render the indentation lines.
+  final Color lineColor;
+
+  /// A padding factor to be applied on non root nodes, so its properties have
+  /// extra padding steps.
+  final double propertyPaddingFactor;
+
+  const _Indentation({
+    Key? key,
+    required this.node,
+    required this.indentationPadding,
+    this.lineColor = Colors.grey,
+    this.propertyPaddingFactor = 4,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    const lineWidth = 1.0;
+    return Row(
+      children: [
+        for (int i = 0; i < node.treeDepth; i++)
+          Container(
+            margin: EdgeInsets.only(
+              right: indentationPadding,
+            ),
+            width: lineWidth,
+            color: lineColor,
+          ),
+        if (!node.isRoot)
+          SizedBox(
+            width: indentationPadding * propertyPaddingFactor,
+          ),
+        if (node.isRoot && !node.isCollapsed) ...[
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: FractionallySizedBox(
+              heightFactor: 0.52,
+              child: Container(
+                width: 1,
+                color: lineColor,
+              ),
+            ),
+          ),
+          Container(
+            height: lineWidth,
+            width: (indentationPadding / 2) - lineWidth,
+            color: lineColor,
+          ),
+        ],
+        if (node.isRoot && node.isCollapsed)
+          SizedBox(
+            width: indentationPadding / 2,
+          ),
+      ],
+    );
   }
 }
 
