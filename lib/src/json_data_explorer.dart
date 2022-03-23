@@ -1,8 +1,17 @@
+import 'package:data_explorer/src/data_explorer_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import 'data_explorer_store.dart';
+
+/// Signature for a function that creates a widget based on a
+/// [NodeViewModelState] state.
+///
+/// Used by [_JsonAttribute.rootInformationBuilder].
+///
+typedef NodeBuilder = Widget Function(
+    BuildContext context, NodeViewModelState node);
 
 class JsonDataExplorer extends StatelessWidget {
   final Iterable<NodeViewModelState> nodes;
@@ -10,11 +19,19 @@ class JsonDataExplorer extends StatelessWidget {
   final ItemPositionsListener? itemPositionsListener;
   final DataExplorerTheme theme;
 
+  /// A builder to add a widget as a suffix for root nodes.
+  ///
+  /// This can be used to display useful information such as the number of
+  /// children nodes, or to indicate if the node is class or an array
+  /// for example.
+  final NodeBuilder? rootInformationBuilder;
+
   const JsonDataExplorer({
     Key? key,
     required this.nodes,
     this.itemScrollController,
     this.itemPositionsListener,
+    this.rootInformationBuilder,
     DataExplorerTheme? theme,
   })  : theme = theme ?? DataExplorerTheme.defaultTheme,
         super(key: key);
@@ -42,6 +59,7 @@ class JsonDataExplorer extends StatelessWidget {
             attributeKeyStyle: theme.keyTextStyle ??
                 DataExplorerTheme.defaultTheme.keyTextStyle!,
             indentationLineColor: theme.indentationLineColor,
+            rootInformationBuilder: rootInformationBuilder,
           ),
         ),
       );
@@ -52,6 +70,14 @@ class _JsonAttribute extends StatelessWidget {
   final double indentationPadding;
   final TextStyle attributeKeyStyle;
   final TextStyle valueStyle;
+
+  /// A builder to add a widget as a suffix for root nodes.
+  ///
+  /// This can be used to display useful information such as the number of
+  /// children nodes, or to indicate if the node is class or an array
+  /// for example.
+  final NodeBuilder? rootInformationBuilder;
+
   final Color indentationLineColor;
 
   const _JsonAttribute({
@@ -60,6 +86,7 @@ class _JsonAttribute extends StatelessWidget {
     required this.attributeKeyStyle,
     required this.valueStyle,
     this.indentationPadding = 8.0,
+    this.rootInformationBuilder,
     this.indentationLineColor = Colors.grey,
   }) : super(key: key);
 
@@ -111,7 +138,6 @@ class _JsonAttribute extends StatelessWidget {
                             Icons.arrow_drop_down,
                           ),
                         ),
-                // TODO: configurable theme.
                 _HighlightedText(
                   text: '${node.key}: ',
                   highlightedText: searchTerm,
@@ -121,6 +147,10 @@ class _JsonAttribute extends StatelessWidget {
                         isSearchFocused ? Colors.deepPurpleAccent : Colors.grey,
                   ),
                 ),
+                if (node.isRoot)
+                  rootInformationBuilder?.call(context, node) ??
+                      const SizedBox()
+                else
                   Expanded(
                     child: _HighlightedText(
                       text: node.value.toString(),
@@ -151,22 +181,6 @@ class _JsonAttribute extends StatelessWidget {
     } else {
       dataExplorerStore.collapseNode(node);
     }
-  }
-
-  String _valueDisplay() {
-    if (node.isClass) {
-      return '{${(node.childrenCount)}}';
-    } else if (node.isArray) {
-      return '[${node.childrenCount}]';
-    }
-    return node.value.toString();
-  }
-
-  Color _valueColor() {
-    if (node.isRoot) {
-      return Colors.grey;
-    }
-    return Colors.redAccent;
   }
 }
 
