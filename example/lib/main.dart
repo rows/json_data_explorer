@@ -236,8 +236,20 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
+                      keySearchHighlightTextStyle: GoogleFonts.inconsolata(
+                        color: Colors.black,
+                        backgroundColor: const Color(0xFFFFEDAD),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                       valueTextStyle: GoogleFonts.inconsolata(
                         color: const Color(0xFFCA442C),
+                        fontSize: 16,
+                      ),
+                      valueSearchHighlightTextStyle: GoogleFonts.inconsolata(
+                        color: const Color(0xFFCA442C),
+                        backgroundColor: const Color(0xFFFFEDAD),
+                        fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                       indentationLineColor: const Color(0xFFE1E1E1),

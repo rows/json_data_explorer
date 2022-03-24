@@ -9,6 +9,13 @@ class DataExplorerTheme {
   /// Text style to display the values of of json attributes.
   final TextStyle? valueTextStyle;
 
+  /// Text style use to highlight search result matches on json attribute keys.
+  final TextStyle? keySearchHighlightTextStyle;
+
+  /// Text style use to highlight search result matches on json attribute
+  /// values.
+  final TextStyle? valueSearchHighlightTextStyle;
+
   /// Indentation lines color.
   final Color indentationLineColor;
 
@@ -26,7 +33,9 @@ class DataExplorerTheme {
 
   const DataExplorerTheme({
     this.keyTextStyle,
+    this.keySearchHighlightTextStyle,
     this.valueTextStyle,
+    this.valueSearchHighlightTextStyle,
     this.indentationLineColor = Colors.grey,
     this.highlightColor,
     this.indentationPadding = 8.0,
@@ -44,11 +53,25 @@ class DataExplorerTheme {
       fontSize: 14,
       color: Colors.redAccent,
     ),
+    keySearchHighlightTextStyle: TextStyle(
+      fontSize: 14,
+      color: Colors.black,
+      fontWeight: FontWeight.bold,
+      backgroundColor: Colors.amberAccent,
+    ),
+    valueSearchHighlightTextStyle: TextStyle(
+      fontSize: 14,
+      color: Colors.redAccent,
+      fontWeight: FontWeight.bold,
+      backgroundColor: Colors.amberAccent,
+    ),
   );
 
   DataExplorerTheme copyWith({
     TextStyle? keyTextStyle,
+    TextStyle? keySearchHighlightTextStyle,
     TextStyle? valueTextStyle,
+    TextStyle? valueSearchHighlightTextStyle,
     Color? indentationLineColor,
     Color? highlightColor,
     double? indentationPadding,
@@ -56,7 +79,11 @@ class DataExplorerTheme {
   }) =>
       DataExplorerTheme(
         keyTextStyle: keyTextStyle ?? this.keyTextStyle,
+        keySearchHighlightTextStyle:
+            keySearchHighlightTextStyle ?? this.keySearchHighlightTextStyle,
         valueTextStyle: valueTextStyle ?? this.valueTextStyle,
+        valueSearchHighlightTextStyle:
+            keyTextStyle ?? this.valueSearchHighlightTextStyle,
         indentationLineColor: indentationLineColor ?? this.indentationLineColor,
         highlightColor: highlightColor ?? this.highlightColor,
         indentationPadding: indentationPadding ?? this.indentationPadding,
@@ -75,7 +102,9 @@ class DataExplorerTheme {
         highlightColor == other.highlightColor &&
         indentationPadding == other.indentationPadding &&
         propertyIndentationPaddingFactor ==
-            other.propertyIndentationPaddingFactor;
+            other.propertyIndentationPaddingFactor &&
+        keySearchHighlightTextStyle == other.keySearchHighlightTextStyle &&
+        valueSearchHighlightTextStyle == other.valueSearchHighlightTextStyle;
   }
 
   @override
@@ -86,5 +115,7 @@ class DataExplorerTheme {
         highlightColor,
         indentationPadding,
         propertyIndentationPaddingFactor,
+        keySearchHighlightTextStyle,
+        valueSearchHighlightTextStyle,
       );
 }

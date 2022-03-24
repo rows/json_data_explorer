@@ -148,8 +148,13 @@ class _JsonAttribute extends StatelessWidget {
 
     final attributeKeyStyle =
         theme.keyTextStyle ?? DataExplorerTheme.defaultTheme.keyTextStyle;
+    final attributeKeySearchHighlightStyle =
+        theme.keySearchHighlightTextStyle ??
+            DataExplorerTheme.defaultTheme.keySearchHighlightTextStyle;
     final valueStyle =
         theme.valueTextStyle ?? DataExplorerTheme.defaultTheme.valueTextStyle;
+    final valueSearchHighlightStyle = theme.valueSearchHighlightTextStyle ??
+        DataExplorerTheme.defaultTheme.valueSearchHighlightTextStyle;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -187,10 +192,7 @@ class _JsonAttribute extends StatelessWidget {
                   text: _keyName(),
                   highlightedText: searchTerm,
                   style: attributeKeyStyle!,
-                  highlightedStyle: attributeKeyStyle.copyWith(
-                    backgroundColor:
-                        isSearchFocused ? Colors.deepPurpleAccent : Colors.grey,
-                  ),
+                  highlightedStyle: attributeKeySearchHighlightStyle!,
                 ),
                 const SizedBox(width: 4),
                 if (node.isRoot)
@@ -203,11 +205,7 @@ class _JsonAttribute extends StatelessWidget {
                           node.value.toString(),
                       highlightedText: searchTerm,
                       style: valueStyle!,
-                      highlightedStyle: valueStyle.copyWith(
-                        backgroundColor: isSearchFocused
-                            ? Colors.deepPurpleAccent
-                            : Colors.grey,
-                      ),
+                      highlightedStyle: valueSearchHighlightStyle!,
                     ),
                   ),
               ],
