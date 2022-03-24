@@ -284,14 +284,16 @@ void main() {
     });
 
     group('areAllCollapsed', () {
-      test('is true when nodes are built with isAllCollapsed as false', () {
+      test('works properly when nodes are built with isAllCollapsed as false',
+          () {
         final store = DataExplorerStore();
         store.buildNodes(json.decode(testJson), isAllCollapsed: false);
 
         expect(store.areAllCollapsed(), isFalse);
       });
 
-      test('is false when nodes are built with isAllCollapsed as true', () {
+      test('works properly when nodes are built with isAllCollapsed as true',
+          () {
         final store = DataExplorerStore();
         store.buildNodes(json.decode(testJson), isAllCollapsed: true);
 
@@ -359,14 +361,16 @@ void main() {
     });
 
     group('areAllExpanded', () {
-      test('is true when nodes are built with isAllCollapsed as false', () {
+      test('works properly when nodes are built with isAllCollapsed as false',
+          () {
         final store = DataExplorerStore();
         store.buildNodes(json.decode(testJson), isAllCollapsed: false);
 
         expect(store.areAllExpanded(), isTrue);
       });
 
-      test('is false when nodes are built with isAllCollapsed as true', () {
+      test('works properly when nodes are built with isAllCollapsed as true',
+          () {
         final store = DataExplorerStore();
         store.buildNodes(json.decode(testJson), isAllCollapsed: true);
 
