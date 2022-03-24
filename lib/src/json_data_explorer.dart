@@ -85,14 +85,7 @@ class JsonDataExplorer extends StatelessWidget {
             rootNameFormatter: rootNameFormatter,
             propertyNameFormatter: propertyNameFormatter,
             valueFormatter: valueFormatter,
-            valueStyle: theme.valueTextStyle ??
-                DataExplorerTheme.defaultTheme.valueTextStyle!,
-            attributeKeyStyle: theme.keyTextStyle ??
-                DataExplorerTheme.defaultTheme.keyTextStyle!,
-            indentationLineColor: theme.indentationLineColor,
-            indentationPadding: theme.indentationPadding,
-            propertyIndentationPaddingFactor:
-                theme.propertyIndentationPaddingFactor,
+            theme: theme,
           ),
         ),
       );
@@ -100,9 +93,6 @@ class JsonDataExplorer extends StatelessWidget {
 
 class _JsonAttribute extends StatelessWidget {
   final NodeViewModelState node;
-  final double indentationPadding;
-  final TextStyle attributeKeyStyle;
-  final TextStyle valueStyle;
 
   /// A builder to add a widget as a suffix for root nodes.
   ///
@@ -133,26 +123,18 @@ class _JsonAttribute extends StatelessWidget {
   /// method.
   final Formatter? valueFormatter;
 
-  /// Color of the indentation guide lines.
-  final Color indentationLineColor;
-
-  /// An extra factor applied on [indentationPadding] used when rendering
-  /// properties.
-  final double propertyIndentationPaddingFactor;
+  /// Theme used to render this widget.
+  final DataExplorerTheme theme;
 
   const _JsonAttribute({
     Key? key,
     required this.node,
-    required this.attributeKeyStyle,
-    required this.valueStyle,
-    this.indentationPadding = 8.0,
-    this.propertyIndentationPaddingFactor = 4,
+    required this.theme,
     this.rootInformationBuilder,
     this.collapsableToggleBuilder,
     this.rootNameFormatter,
     this.propertyNameFormatter,
     this.valueFormatter,
-    this.indentationLineColor = Colors.grey,
   }) : super(key: key);
 
   @override
@@ -163,6 +145,11 @@ class _JsonAttribute extends StatelessWidget {
         store.searchResults.isNotEmpty
             ? store.searchResults.elementAt(store.searchNodeFocusIndex) == node
             : false);
+
+    final attributeKeyStyle =
+        theme.keyTextStyle ?? DataExplorerTheme.defaultTheme.keyTextStyle;
+    final valueStyle =
+        theme.valueTextStyle ?? DataExplorerTheme.defaultTheme.valueTextStyle;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -186,9 +173,9 @@ class _JsonAttribute extends StatelessWidget {
               children: [
                 _Indentation(
                   node: node,
-                  indentationPadding: indentationPadding,
-                  propertyPaddingFactor: propertyIndentationPaddingFactor,
-                  lineColor: indentationLineColor,
+                  indentationPadding: theme.indentationPadding,
+                  propertyPaddingFactor: theme.propertyIndentationPaddingFactor,
+                  lineColor: theme.indentationLineColor,
                 ),
                 if (node.isRoot)
                   SizedBox(
@@ -199,7 +186,7 @@ class _JsonAttribute extends StatelessWidget {
                 _HighlightedText(
                   text: _keyName(),
                   highlightedText: searchTerm,
-                  style: attributeKeyStyle,
+                  style: attributeKeyStyle!,
                   highlightedStyle: attributeKeyStyle.copyWith(
                     backgroundColor:
                         isSearchFocused ? Colors.deepPurpleAccent : Colors.grey,
@@ -215,7 +202,7 @@ class _JsonAttribute extends StatelessWidget {
                       text: valueFormatter?.call(node.value) ??
                           node.value.toString(),
                       highlightedText: searchTerm,
-                      style: valueStyle,
+                      style: valueStyle!,
                       highlightedStyle: valueStyle.copyWith(
                         backgroundColor: isSearchFocused
                             ? Colors.deepPurpleAccent
