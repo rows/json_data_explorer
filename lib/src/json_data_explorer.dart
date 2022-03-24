@@ -141,6 +141,10 @@ class _JsonAttribute extends StatelessWidget {
   Widget build(BuildContext context) {
     final searchTerm =
         context.select<DataExplorerStore, String>((store) => store.searchTerm);
+    final isSearchFocused = context.select<DataExplorerStore, bool>((store) =>
+        store.searchResults.isNotEmpty
+            ? store.searchResults.elementAt(store.searchNodeFocusIndex) == node
+            : false);
 
     final attributeKeyStyle =
         node.isRoot ? theme.rootKeyTextStyle : theme.propertyKeyTextStyle;
@@ -181,7 +185,9 @@ class _JsonAttribute extends StatelessWidget {
                   text: _keyName(),
                   highlightedText: searchTerm,
                   style: attributeKeyStyle,
-                  highlightedStyle: theme.keySearchHighlightTextStyle,
+                  highlightedStyle: isSearchFocused
+                      ? theme.focusedKeySearchNodeHighlightTextStyle
+                      : theme.keySearchHighlightTextStyle,
                 ),
                 const SizedBox(width: 4),
                 if (node.isRoot)
@@ -194,7 +200,9 @@ class _JsonAttribute extends StatelessWidget {
                           node.value.toString(),
                       highlightedText: searchTerm,
                       style: theme.valueTextStyle,
-                      highlightedStyle: theme.valueSearchHighlightTextStyle,
+                      highlightedStyle: isSearchFocused
+                          ? theme.focusedValueSearchHighlightTextStyle
+                          : theme.valueSearchHighlightTextStyle,
                     ),
                   ),
               ],

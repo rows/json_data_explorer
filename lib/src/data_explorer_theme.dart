@@ -21,6 +21,16 @@ class DataExplorerTheme {
   /// values.
   final TextStyle valueSearchHighlightTextStyle;
 
+  /// Text style used to highlight the current focused search result node key.
+  ///
+  /// If not set falls back to [keySearchHighlightTextStyle].
+  final TextStyle focusedKeySearchNodeHighlightTextStyle;
+
+  /// Text style used to highlight the current focused search result node value.
+  ///
+  /// If not set falls back to [valueSearchHighlightTextStyle].
+  final TextStyle focusedValueSearchHighlightTextStyle;
+
   /// Indentation lines color.
   final Color indentationLineColor;
 
@@ -42,6 +52,8 @@ class DataExplorerTheme {
     TextStyle? keySearchHighlightTextStyle,
     TextStyle? valueTextStyle,
     TextStyle? valueSearchHighlightTextStyle,
+    TextStyle? focusedKeySearchHighlightTextStyle,
+    TextStyle? focusedValueSearchHighlightTextStyle,
     this.indentationLineColor = Colors.grey,
     this.highlightColor,
     this.indentationPadding = 8.0,
@@ -56,7 +68,17 @@ class DataExplorerTheme {
         valueTextStyle =
             valueTextStyle ?? DataExplorerTheme.defaultTheme.valueTextStyle,
         valueSearchHighlightTextStyle = valueSearchHighlightTextStyle ??
-            DataExplorerTheme.defaultTheme.valueSearchHighlightTextStyle;
+            DataExplorerTheme.defaultTheme.valueSearchHighlightTextStyle,
+        focusedKeySearchNodeHighlightTextStyle =
+            focusedKeySearchHighlightTextStyle ??
+                (keySearchHighlightTextStyle ??
+                    DataExplorerTheme
+                        .defaultTheme.focusedKeySearchNodeHighlightTextStyle),
+        focusedValueSearchHighlightTextStyle =
+            focusedValueSearchHighlightTextStyle ??
+                (valueSearchHighlightTextStyle ??
+                    DataExplorerTheme
+                        .defaultTheme.focusedValueSearchHighlightTextStyle);
 
   const DataExplorerTheme._({
     required this.rootKeyTextStyle,
@@ -64,6 +86,8 @@ class DataExplorerTheme {
     required this.keySearchHighlightTextStyle,
     required this.valueTextStyle,
     required this.valueSearchHighlightTextStyle,
+    required this.focusedKeySearchNodeHighlightTextStyle,
+    required this.focusedValueSearchHighlightTextStyle,
     this.indentationLineColor = Colors.grey,
     this.highlightColor,
     this.indentationPadding = 8.0,
@@ -98,6 +122,18 @@ class DataExplorerTheme {
       fontWeight: FontWeight.bold,
       backgroundColor: Colors.amberAccent,
     ),
+    focusedKeySearchNodeHighlightTextStyle: TextStyle(
+      fontSize: 14,
+      color: Colors.black,
+      fontWeight: FontWeight.bold,
+      backgroundColor: Colors.lightGreen,
+    ),
+    focusedValueSearchHighlightTextStyle: TextStyle(
+      fontSize: 14,
+      color: Colors.redAccent,
+      fontWeight: FontWeight.bold,
+      backgroundColor: Colors.lightGreen,
+    ),
   );
 
   DataExplorerTheme copyWith({
@@ -106,6 +142,8 @@ class DataExplorerTheme {
     TextStyle? keySearchHighlightTextStyle,
     TextStyle? valueTextStyle,
     TextStyle? valueSearchHighlightTextStyle,
+    TextStyle? focusedKeySearchNodeHighlightTextStyle,
+    TextStyle? focusedValueSearchHighlightTextStyle,
     Color? indentationLineColor,
     Color? highlightColor,
     double? indentationPadding,
@@ -124,6 +162,12 @@ class DataExplorerTheme {
         indentationPadding: indentationPadding ?? this.indentationPadding,
         propertyIndentationPaddingFactor: propertyIndentationPaddingFactor ??
             this.propertyIndentationPaddingFactor,
+        focusedKeySearchHighlightTextStyle:
+            focusedKeySearchNodeHighlightTextStyle ??
+                this.focusedKeySearchNodeHighlightTextStyle,
+        focusedValueSearchHighlightTextStyle:
+            focusedValueSearchHighlightTextStyle ??
+                this.focusedValueSearchHighlightTextStyle,
       );
 
   @override
@@ -140,7 +184,11 @@ class DataExplorerTheme {
         propertyIndentationPaddingFactor ==
             other.propertyIndentationPaddingFactor &&
         keySearchHighlightTextStyle == other.keySearchHighlightTextStyle &&
-        valueSearchHighlightTextStyle == other.valueSearchHighlightTextStyle;
+        valueSearchHighlightTextStyle == other.valueSearchHighlightTextStyle &&
+        focusedKeySearchNodeHighlightTextStyle ==
+            other.focusedKeySearchNodeHighlightTextStyle &&
+        focusedValueSearchHighlightTextStyle ==
+            other.focusedValueSearchHighlightTextStyle;
   }
 
   @override
@@ -154,5 +202,7 @@ class DataExplorerTheme {
         propertyIndentationPaddingFactor,
         keySearchHighlightTextStyle,
         valueSearchHighlightTextStyle,
+        focusedKeySearchNodeHighlightTextStyle,
+        focusedValueSearchHighlightTextStyle,
       );
 }
