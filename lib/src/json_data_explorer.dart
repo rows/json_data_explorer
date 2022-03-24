@@ -141,20 +141,9 @@ class _JsonAttribute extends StatelessWidget {
   Widget build(BuildContext context) {
     final searchTerm =
         context.select<DataExplorerStore, String>((store) => store.searchTerm);
-    final isSearchFocused = context.select<DataExplorerStore, bool>((store) =>
-        store.searchResults.isNotEmpty
-            ? store.searchResults.elementAt(store.searchNodeFocusIndex) == node
-            : false);
 
     final attributeKeyStyle =
-        theme.keyTextStyle ?? DataExplorerTheme.defaultTheme.keyTextStyle;
-    final attributeKeySearchHighlightStyle =
-        theme.keySearchHighlightTextStyle ??
-            DataExplorerTheme.defaultTheme.keySearchHighlightTextStyle;
-    final valueStyle =
-        theme.valueTextStyle ?? DataExplorerTheme.defaultTheme.valueTextStyle;
-    final valueSearchHighlightStyle = theme.valueSearchHighlightTextStyle ??
-        DataExplorerTheme.defaultTheme.valueSearchHighlightTextStyle;
+        node.isRoot ? theme.rootKeyTextStyle : theme.propertyKeyTextStyle;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -191,8 +180,8 @@ class _JsonAttribute extends StatelessWidget {
                 _HighlightedText(
                   text: _keyName(),
                   highlightedText: searchTerm,
-                  style: attributeKeyStyle!,
-                  highlightedStyle: attributeKeySearchHighlightStyle!,
+                  style: attributeKeyStyle,
+                  highlightedStyle: theme.keySearchHighlightTextStyle,
                 ),
                 const SizedBox(width: 4),
                 if (node.isRoot)
@@ -204,8 +193,8 @@ class _JsonAttribute extends StatelessWidget {
                       text: valueFormatter?.call(node.value) ??
                           node.value.toString(),
                       highlightedText: searchTerm,
-                      style: valueStyle!,
-                      highlightedStyle: valueSearchHighlightStyle!,
+                      style: theme.valueTextStyle,
+                      highlightedStyle: theme.valueSearchHighlightTextStyle,
                     ),
                   ),
               ],

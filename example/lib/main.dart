@@ -231,8 +231,13 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
 
                     /// Theme definitions of the json data explorer
                     theme: DataExplorerTheme(
-                      keyTextStyle: GoogleFonts.inconsolata(
+                      rootKeyTextStyle: GoogleFonts.inconsolata(
                         color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      propertyKeyTextStyle: GoogleFonts.inconsolata(
+                        color: Colors.black.withOpacity(0.7),
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
