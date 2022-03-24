@@ -33,6 +33,11 @@ class JsonDataExplorer extends StatelessWidget {
   /// collapsed nodes and [Icons.arrow_drop_down] for expanded nodes.
   final NodeBuilder? collapsableToggleBuilder;
 
+  /// A builder to add a trailing widget in each node.
+  ///
+  /// This widget is added to the end of the node on top of the content.
+  final NodeBuilder? trailingBuilder;
+
   /// Customizes how class/array names are formatted as string.
   ///
   /// By default the class and array names are displayed as follows: 'name:'
@@ -49,6 +54,9 @@ class JsonDataExplorer extends StatelessWidget {
   /// method.
   final Formatter? valueFormatter;
 
+  /// Sets the spacing between each list item.
+  final double itemSpacing;
+
   const JsonDataExplorer({
     Key? key,
     required this.nodes,
@@ -56,9 +64,11 @@ class JsonDataExplorer extends StatelessWidget {
     this.itemPositionsListener,
     this.rootInformationBuilder,
     this.collapsableToggleBuilder,
+    this.trailingBuilder,
     this.rootNameFormatter,
     this.propertyNameFormatter,
     this.valueFormatter,
+    this.itemSpacing = 2,
     DataExplorerTheme? theme,
   })  : theme = theme ?? DataExplorerTheme.defaultTheme,
         super(key: key);
@@ -82,9 +92,11 @@ class JsonDataExplorer extends StatelessWidget {
             node: nodes.elementAt(index),
             rootInformationBuilder: rootInformationBuilder,
             collapsableToggleBuilder: collapsableToggleBuilder,
+            trailingBuilder: trailingBuilder,
             rootNameFormatter: rootNameFormatter,
             propertyNameFormatter: propertyNameFormatter,
             valueFormatter: valueFormatter,
+            itemSpacing: itemSpacing,
             theme: theme,
           ),
         ),
@@ -107,6 +119,11 @@ class _JsonAttribute extends StatelessWidget {
   /// collapsed nodes and [Icons.arrow_drop_down] for expanded nodes.
   final NodeBuilder? collapsableToggleBuilder;
 
+  /// A builder to add a trailing widget in each node.
+  ///
+  /// This widget is added to the end of the node on top of the content.
+  final NodeBuilder? trailingBuilder;
+
   /// Customizes how class/array names are formatted as string.
   ///
   /// By default the class and array names are displayed as follows: 'name:'
@@ -123,6 +140,9 @@ class _JsonAttribute extends StatelessWidget {
   /// method.
   final Formatter? valueFormatter;
 
+  /// Sets the spacing between each list item.
+  final double itemSpacing;
+
   /// Theme used to render this widget.
   final DataExplorerTheme theme;
 
@@ -132,9 +152,11 @@ class _JsonAttribute extends StatelessWidget {
     required this.theme,
     this.rootInformationBuilder,
     this.collapsableToggleBuilder,
+    this.trailingBuilder,
     this.rootNameFormatter,
     this.propertyNameFormatter,
     this.valueFormatter,
+    this.itemSpacing = 2,
   }) : super(key: key);
 
   @override
@@ -149,64 +171,88 @@ class _JsonAttribute extends StatelessWidget {
     final attributeKeyStyle =
         node.isRoot ? theme.rootKeyTextStyle : theme.propertyKeyTextStyle;
 
+    final spacing = itemSpacing / 2;
+
     return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (event) => node.highlight(true),
-      onExit: (event) => node.highlight(false),
+      cursor: node.isRoot ? SystemMouseCursors.click : MouseCursor.defer,
+      onEnter: (event) {
+        node.highlight(true);
+        node.focus(true);
+      },
+      onExit: (event) {
+        node.highlight(false);
+        node.focus(false);
+      },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => _onTap(context),
+        onTap: node.isRoot ? () => _onTap(context) : null,
         child: AnimatedBuilder(
           animation: node,
 
           /// IntrinsicHeight is not the best solution for this, the performance
           /// hit that we measured is ok for now. We will revisit this in the
           /// future if we fill that we need to improve the node rendering
-          /// performance.
-          builder: (context, child) => IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: node.isRoot
-                  ? CrossAxisAlignment.center
-                  : CrossAxisAlignment.start,
-              children: [
-                _Indentation(
-                  node: node,
-                  indentationPadding: theme.indentationPadding,
-                  propertyPaddingFactor: theme.propertyIndentationPaddingFactor,
-                  lineColor: theme.indentationLineColor,
-                ),
-                if (node.isRoot)
-                  SizedBox(
-                    width: 24,
-                    child: collapsableToggleBuilder?.call(context, node) ??
-                        _defaultCollapsableToggleBuilder(context, node),
-                  ),
-                _HighlightedText(
-                  text: _keyName(),
-                  highlightedText: searchTerm,
-                  style: attributeKeyStyle,
-                  highlightedStyle: isSearchFocused
-                      ? theme.focusedKeySearchNodeHighlightTextStyle
-                      : theme.keySearchHighlightTextStyle,
-                ),
-                const SizedBox(width: 4),
-                if (node.isRoot)
-                  rootInformationBuilder?.call(context, node) ??
-                      const SizedBox()
-                else
-                  Expanded(
-                    child: _HighlightedText(
-                      text: valueFormatter?.call(node.value) ??
-                          node.value.toString(),
-                      highlightedText: searchTerm,
-                      style: theme.valueTextStyle,
-                      highlightedStyle: isSearchFocused
-                          ? theme.focusedValueSearchHighlightTextStyle
-                          : theme.valueSearchHighlightTextStyle,
+          /// performance
+          builder: (context, child) => Stack(
+            children: [
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: node.isRoot
+                      ? CrossAxisAlignment.center
+                      : CrossAxisAlignment.start,
+                  children: [
+                    _Indentation(
+                      node: node,
+                      indentationPadding: theme.indentationPadding,
+                      propertyPaddingFactor:
+                          theme.propertyIndentationPaddingFactor,
+                      lineColor: theme.indentationLineColor,
                     ),
-                  ),
-              ],
-            ),
+                    if (node.isRoot)
+                      SizedBox(
+                        width: 24,
+                        child: collapsableToggleBuilder?.call(context, node) ??
+                            _defaultCollapsableToggleBuilder(context, node),
+                      ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: spacing),
+                      child: _HighlightedText(
+                        text: _keyName(),
+                        highlightedText: searchTerm,
+                        style: attributeKeyStyle,
+                        highlightedStyle: isSearchFocused
+                            ? theme.focusedKeySearchNodeHighlightTextStyle
+                            : theme.keySearchHighlightTextStyle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    if (node.isRoot)
+                      rootInformationBuilder?.call(context, node) ??
+                          const SizedBox()
+                    else
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: spacing),
+                          child: _HighlightedText(
+                            text: valueFormatter?.call(node.value) ??
+                                node.value.toString(),
+                            highlightedText: searchTerm,
+                            style: theme.valueTextStyle,
+                            highlightedStyle: isSearchFocused
+                                ? theme.focusedValueSearchHighlightTextStyle
+                                : theme.valueSearchHighlightTextStyle,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (trailingBuilder != null)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: trailingBuilder!.call(context, node),
+                ),
+            ],
           ),
         ),
       ),
