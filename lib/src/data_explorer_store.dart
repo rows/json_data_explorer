@@ -470,6 +470,22 @@ class DataExplorerStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Returns true if all nodes are expanded, otherwise returns false.
+  bool areAllExpanded() {
+    return _displayNodes.length == _allNodes.length;
+  }
+
+  /// Returns true if all nodes are collapsed, otherwise returns false.
+  bool areAllCollapsed() {
+    for (final node in _displayNodes) {
+      if (node.childrenCount > 0 && !node._isCollapsed) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   /// Executes a search in the current data structure looking for the given
   /// search [term].
   ///
