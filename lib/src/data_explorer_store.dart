@@ -471,7 +471,9 @@ class DataExplorerStore extends ChangeNotifier {
   }
 
   /// Returns true if all nodes are expanded, otherwise returns false.
-  bool get areAllExpanded => _displayNodes.length == _allNodes.length;
+  bool areAllExpanded() {
+    return _displayNodes.length == _allNodes.length;
+  }
 
   /// Returns true if all nodes are collapsed, otherwise returns false.
   bool areAllCollapsed() {

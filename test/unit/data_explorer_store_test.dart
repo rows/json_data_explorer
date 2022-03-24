@@ -89,7 +89,7 @@ void main() {
       expect(store.displayNodes, hasLength(2));
       expect(store.displayNodes.elementAt(0).key, 'firstClass');
       expect(store.displayNodes.elementAt(1).key, 'secondClass');
-      expect(store.areAllExpanded, isFalse);
+      expect(store.areAllExpanded(), isFalse);
       expect(store.areAllCollapsed(), isTrue);
     });
 
@@ -124,7 +124,7 @@ void main() {
       expect(store.displayNodes.elementAt(1).key, 'secondClass');
       verify(() => listener.call()).called(1);
 
-      expect(store.areAllExpanded, isFalse);
+      expect(store.areAllExpanded(), isFalse);
       expect(store.areAllCollapsed(), isTrue);
     });
 
@@ -141,7 +141,7 @@ void main() {
       expect(store.displayNodes.elementAt(24).key, 'secondClass');
       verify(() => listener.call()).called(1);
 
-      expect(store.areAllExpanded, isTrue);
+      expect(store.areAllExpanded(), isTrue);
       expect(store.areAllCollapsed(), isFalse);
     });
 
@@ -160,7 +160,7 @@ void main() {
       expect(store.displayNodes.elementAt(1).key, 'secondClass');
       verify(() => listener.call()).called(1);
 
-      expect(store.areAllExpanded, isFalse);
+      expect(store.areAllExpanded(), isFalse);
       expect(store.areAllCollapsed(), isFalse);
     });
 
@@ -209,7 +209,7 @@ void main() {
       expect(store.displayNodes.elementAt(7).key, 'secondClass');
       verify(() => listener.call()).called(1);
 
-      expect(store.areAllExpanded, isFalse);
+      expect(store.areAllExpanded(), isFalse);
       expect(store.areAllCollapsed(), isFalse);
     });
 
@@ -363,21 +363,21 @@ void main() {
         final store = DataExplorerStore();
         store.buildNodes(json.decode(testJson), isAllCollapsed: false);
 
-        expect(store.areAllExpanded, isTrue);
+        expect(store.areAllExpanded(), isTrue);
       });
 
       test('is false when nodes are built with isAllCollapsed as true', () {
         final store = DataExplorerStore();
         store.buildNodes(json.decode(testJson), isAllCollapsed: true);
 
-        expect(store.areAllExpanded, isFalse);
+        expect(store.areAllExpanded(), isFalse);
       });
 
       test('works properly when expanding each node individually', () {
         final store = DataExplorerStore();
         store.buildNodes(json.decode(testJson), isAllCollapsed: true);
 
-        expect(store.areAllExpanded, isFalse);
+        expect(store.areAllExpanded(), isFalse);
 
         // expand all nodes individually
         store.expandNode(store.getNodeByKey('firstClass'));
@@ -405,13 +405,13 @@ void main() {
         );
         store.expandNode(store.getNodeByKey('secondClass.array'));
 
-        expect(store.areAllExpanded, isTrue);
+        expect(store.areAllExpanded(), isTrue);
 
         // collapse a node
         store.collapseNode(store
             .getNodeByKey('secondClassField.innerClassField', lastWhere: true));
 
-        expect(store.areAllExpanded, isFalse);
+        expect(store.areAllExpanded(), isFalse);
       });
     });
   });

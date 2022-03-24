@@ -168,7 +168,8 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                 Row(
                   children: [
                     TextButton(
-                      onPressed: state.areAllExpanded ? null : state.expandAll,
+                      onPressed:
+                          state.areAllExpanded() ? null : state.expandAll,
                       child: const Text('Expand All'),
                     ),
                     const SizedBox(
