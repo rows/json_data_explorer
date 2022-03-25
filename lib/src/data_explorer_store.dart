@@ -200,6 +200,7 @@ class NodeViewModelState extends ChangeNotifier {
 /// The return [Map<String, NodeViewModelState>] has the same structure as
 /// the decoded [object], except that every class, array and property is now
 /// a [NodeViewModelState].
+@visibleForTesting
 Map<String, NodeViewModelState> buildViewModelNodes(dynamic object) {
   if (object is Map<String, dynamic>) {
     return _buildClassNodes(object: object);
@@ -277,6 +278,7 @@ List<NodeViewModelState> _buildArrayNodes({
   return array;
 }
 
+@visibleForTesting
 List<NodeViewModelState> flatten(dynamic object) {
   if (object is List) {
     return _flattenArray(object as List<NodeViewModelState>);
@@ -364,8 +366,7 @@ class DataExplorerStore extends ChangeNotifier {
   List<NodeViewModelState> _displayNodes = [];
   UnmodifiableListView<NodeViewModelState> _allNodes = UnmodifiableListView([]);
 
-  // TODO: maybe the search should be in another store.
-  final _searchResults = <NodeViewModelState>[];
+  final _searchResults = <SearchResult>[];
   String _searchTerm = '';
   var _searchNodeFocusIndex = 0;
 
@@ -385,7 +386,7 @@ class DataExplorerStore extends ChangeNotifier {
   ///
   /// [notifyListeners] is called whenever this value changes.
   /// The returned [Iterable] is closed for modification.
-  Iterable<NodeViewModelState> get searchResults =>
+  Iterable<SearchResult> get searchResults =>
       UnmodifiableListView(_searchResults);
 
   /// Gets the current focused search node index.
@@ -532,7 +533,7 @@ class DataExplorerStore extends ChangeNotifier {
       notifyListeners();
 
       final index =
-          _displayNodes.indexOf(_searchResults[_searchNodeFocusIndex]);
+          _displayNodes.indexOf(_searchResults[_searchNodeFocusIndex].node);
       if (index != -1) {
         itemScrollController.scrollTo(
           index: index,
@@ -555,7 +556,7 @@ class DataExplorerStore extends ChangeNotifier {
       notifyListeners();
 
       final index =
-          _displayNodes.indexOf(_searchResults[_searchNodeFocusIndex]);
+          _displayNodes.indexOf(_searchResults[_searchNodeFocusIndex].node);
       if (index != -1) {
         itemScrollController.scrollTo(
           index: index,
@@ -595,22 +596,33 @@ class DataExplorerStore extends ChangeNotifier {
     return count;
   }
 
-  // TODO: not optimal way to do this. Maybe change to a stream once we leave
-  // the SPIKE phase.
-  // Also we are scrolling only to the first item for demo purposes.
-  Future _doSearch() {
-    return Future(() {
-      for (final node in _allNodes) {
-        if (node.key.toLowerCase().contains(searchTerm)) {
-          _searchResults.add(node);
-        }
-        if (!node.isRoot) {
-          if (node.value.toString().toLowerCase().contains(searchTerm)) {
-            _searchResults.add(node);
-          }
+  void _doSearch() {
+    for (final node in _allNodes) {
+      if (node.key.toLowerCase().contains(searchTerm)) {
+        _searchResults.add(SearchResult(node, key: true));
+      }
+      if (!node.isRoot) {
+        if (node.value.toString().toLowerCase().contains(searchTerm)) {
+          _searchResults.add(SearchResult(node, value: true));
         }
       }
-      notifyListeners();
-    });
+    }
+    notifyListeners();
   }
+}
+
+/// A matched search in the given [node].
+///
+/// If the match is registered in the node's key, then [key] is going to be
+/// true. If the match is in the value, then [value] is true.
+class SearchResult {
+  final NodeViewModelState node;
+  final bool key;
+  final bool value;
+
+  const SearchResult(
+    this.node, {
+    this.key = false,
+    this.value = false,
+  }) : assert(key || value);
 }
