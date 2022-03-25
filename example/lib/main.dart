@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:data_explorer/data_explorer.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
@@ -189,6 +190,90 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                   child: JsonDataExplorer(
                     nodes: state.displayNodes,
                     itemScrollController: state.itemScrollController,
+
+                    /// Builds a widget after each root node displaying the
+                    /// number of children nodes that it has. Displays `{x}`
+                    /// if it is a class or `[x]` in case of arrays.
+                    rootInformationBuilder: (context, node) => DecoratedBox(
+                      decoration: const BoxDecoration(
+                        color: Color(0x80E1E1E1),
+                        borderRadius: BorderRadius.all(Radius.circular(2)),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 2,
+                        ),
+                        child: Text(
+                          node.isClass
+                              ? '{${(node.childrenCount)}}'
+                              : '[${node.childrenCount}]',
+                          style: GoogleFonts.inconsolata(
+                            fontSize: 12,
+                            color: const Color(0xFF6F6F6F),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    /// Build an animated collapse/expand indicator. Implicitly
+                    /// animates the indicator when
+                    /// [NodeViewModelState.isCollapsed] changes.
+                    collapsableToggleBuilder: (context, node) =>
+                        AnimatedRotation(
+                      turns: node.isCollapsed ? -0.25 : 0,
+                      duration: const Duration(milliseconds: 300),
+                      child: const Icon(Icons.arrow_drop_down),
+                    ),
+
+                    /// Creates a custom format for classes and array names.
+                    rootNameFormatter: (name) => '$name',
+
+                    /// Theme definitions of the json data explorer
+                    theme: DataExplorerTheme(
+                      rootKeyTextStyle: GoogleFonts.inconsolata(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      propertyKeyTextStyle: GoogleFonts.inconsolata(
+                        color: Colors.black.withOpacity(0.7),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      keySearchHighlightTextStyle: GoogleFonts.inconsolata(
+                        color: Colors.black,
+                        backgroundColor: const Color(0xFFFFEDAD),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      focusedKeySearchHighlightTextStyle:
+                          GoogleFonts.inconsolata(
+                        color: Colors.black,
+                        backgroundColor: const Color(0xFFF29D0B),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      valueTextStyle: GoogleFonts.inconsolata(
+                        color: const Color(0xFFCA442C),
+                        fontSize: 16,
+                      ),
+                      valueSearchHighlightTextStyle: GoogleFonts.inconsolata(
+                        color: const Color(0xFFCA442C),
+                        backgroundColor: const Color(0xFFFFEDAD),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      focusedValueSearchHighlightTextStyle:
+                          GoogleFonts.inconsolata(
+                        color: Colors.black,
+                        backgroundColor: const Color(0xFFF29D0B),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      indentationLineColor: const Color(0xFFE1E1E1),
+                      highlightColor: const Color(0xFFF1F1F1),
+                    ),
                   ),
                 ),
               ],

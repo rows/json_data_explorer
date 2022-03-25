@@ -11,7 +11,9 @@ dependencies:
     sdk: flutter
   data_explorer:
     path: ../
+
   http: ^0.13.4
+  google_fonts: ^2.3.1
 
 dev_dependencies:
   flutter_test:

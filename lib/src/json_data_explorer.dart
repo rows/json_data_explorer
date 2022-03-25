@@ -1,20 +1,67 @@
+import 'package:data_explorer/src/data_explorer_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import 'data_explorer_store.dart';
 
+/// Signature for a function that creates a widget based on a
+/// [NodeViewModelState] state.
+typedef NodeBuilder = Widget Function(
+    BuildContext context, NodeViewModelState node);
+
+/// Signature for a function that takes a generic value and converts it to a
+/// string.
+typedef Formatter = String Function(dynamic value);
+
 class JsonDataExplorer extends StatelessWidget {
   final Iterable<NodeViewModelState> nodes;
   final ItemScrollController? itemScrollController;
   final ItemPositionsListener? itemPositionsListener;
+  final DataExplorerTheme theme;
+
+  /// A builder to add a widget as a suffix for root nodes.
+  ///
+  /// This can be used to display useful information such as the number of
+  /// children nodes, or to indicate if the node is class or an array
+  /// for example.
+  final NodeBuilder? rootInformationBuilder;
+
+  /// Build the expand/collapse icons in root nodes.
+  ///
+  /// If this builder is null, a material [Icons.arrow_right] is displayed for
+  /// collapsed nodes and [Icons.arrow_drop_down] for expanded nodes.
+  final NodeBuilder? collapsableToggleBuilder;
+
+  /// Customizes how class/array names are formatted as string.
+  ///
+  /// By default the class and array names are displayed as follows: 'name:'
+  final Formatter? rootNameFormatter;
+
+  /// Customizes how property names are formatted as string.
+  ///
+  /// By default the property names are displayed as follows: 'name:'
+  final Formatter? propertyNameFormatter;
+
+  /// Customizes how property values are formatted as string.
+  ///
+  /// By default the value is converted to a string by calling the .toString()
+  /// method.
+  final Formatter? valueFormatter;
 
   const JsonDataExplorer({
     Key? key,
     required this.nodes,
     this.itemScrollController,
     this.itemPositionsListener,
-  }) : super(key: key);
+    this.rootInformationBuilder,
+    this.collapsableToggleBuilder,
+    this.rootNameFormatter,
+    this.propertyNameFormatter,
+    this.valueFormatter,
+    DataExplorerTheme? theme,
+  })  : theme = theme ?? DataExplorerTheme.defaultTheme,
+        super(key: key);
 
   @override
   Widget build(BuildContext context) => ScrollablePositionedList.builder(
@@ -25,22 +72,20 @@ class JsonDataExplorer extends StatelessWidget {
           animation: nodes.elementAt(index),
           builder: (context, child) => DecoratedBox(
             decoration: BoxDecoration(
-              // TODO: Configurable color.
               color: nodes.elementAt(index).isHighlighted
-                  ? Colors.deepPurpleAccent.withOpacity(0.2)
+                  ? theme.highlightColor
                   : null,
             ),
             child: child,
           ),
           child: _JsonAttribute(
             node: nodes.elementAt(index),
-            valueStyle: Theme.of(context).textTheme.subtitle1!.copyWith(
-                  fontSize: 18,
-                ),
-            attributeKeyStyle: Theme.of(context).textTheme.subtitle1!.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+            rootInformationBuilder: rootInformationBuilder,
+            collapsableToggleBuilder: collapsableToggleBuilder,
+            rootNameFormatter: rootNameFormatter,
+            propertyNameFormatter: propertyNameFormatter,
+            valueFormatter: valueFormatter,
+            theme: theme,
           ),
         ),
       );
@@ -48,16 +93,48 @@ class JsonDataExplorer extends StatelessWidget {
 
 class _JsonAttribute extends StatelessWidget {
   final NodeViewModelState node;
-  final double indentationPadding;
-  final TextStyle attributeKeyStyle;
-  final TextStyle valueStyle;
+
+  /// A builder to add a widget as a suffix for root nodes.
+  ///
+  /// This can be used to display useful information such as the number of
+  /// children nodes, or to indicate if the node is class or an array
+  /// for example.
+  final NodeBuilder? rootInformationBuilder;
+
+  /// Build the expand/collapse icons in root nodes.
+  ///
+  /// If this builder is null, a material [Icons.arrow_right] is displayed for
+  /// collapsed nodes and [Icons.arrow_drop_down] for expanded nodes.
+  final NodeBuilder? collapsableToggleBuilder;
+
+  /// Customizes how class/array names are formatted as string.
+  ///
+  /// By default the class and array names are displayed as follows: 'name:'
+  final Formatter? rootNameFormatter;
+
+  /// Customizes how property names are formatted as string.
+  ///
+  /// By default the property names are displayed as follows: 'name:'
+  final Formatter? propertyNameFormatter;
+
+  /// Customizes how property values are formatted as string.
+  ///
+  /// By default the value is converted to a string by calling the .toString()
+  /// method.
+  final Formatter? valueFormatter;
+
+  /// Theme used to render this widget.
+  final DataExplorerTheme theme;
 
   const _JsonAttribute({
     Key? key,
     required this.node,
-    required this.attributeKeyStyle,
-    required this.valueStyle,
-    this.indentationPadding = 8.0,
+    required this.theme,
+    this.rootInformationBuilder,
+    this.collapsableToggleBuilder,
+    this.rootNameFormatter,
+    this.propertyNameFormatter,
+    this.valueFormatter,
   }) : super(key: key);
 
   @override
@@ -68,6 +145,9 @@ class _JsonAttribute extends StatelessWidget {
         store.searchResults.isNotEmpty
             ? store.searchResults.elementAt(store.searchNodeFocusIndex) == node
             : false);
+
+    final attributeKeyStyle =
+        node.isRoot ? theme.rootKeyTextStyle : theme.propertyKeyTextStyle;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -85,51 +165,46 @@ class _JsonAttribute extends StatelessWidget {
           /// performance.
           builder: (context, child) => IntrinsicHeight(
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: node.isRoot
+                  ? CrossAxisAlignment.center
+                  : CrossAxisAlignment.start,
               children: [
                 _Indentation(
                   node: node,
-                  indentationPadding: indentationPadding,
+                  indentationPadding: theme.indentationPadding,
+                  propertyPaddingFactor: theme.propertyIndentationPaddingFactor,
+                  lineColor: theme.indentationLineColor,
                 ),
                 if (node.isRoot)
-                  node.isCollapsed
-                      ? const SizedBox(
-                          width: 24,
-                          child: Icon(
-                            Icons.arrow_right,
-                          ),
-                        )
-                      : const SizedBox(
-                          width: 24,
-                          child: Icon(
-                            Icons.arrow_drop_down,
-                          ),
-                        ),
-                // TODO: configurable theme.
+                  SizedBox(
+                    width: 24,
+                    child: collapsableToggleBuilder?.call(context, node) ??
+                        _defaultCollapsableToggleBuilder(context, node),
+                  ),
                 _HighlightedText(
-                  text: '${node.key}: ',
+                  text: _keyName(),
                   highlightedText: searchTerm,
                   style: attributeKeyStyle,
-                  highlightedStyle: attributeKeyStyle.copyWith(
-                    backgroundColor:
-                        isSearchFocused ? Colors.deepPurpleAccent : Colors.grey,
-                  ),
+                  highlightedStyle: isSearchFocused
+                      ? theme.focusedKeySearchNodeHighlightTextStyle
+                      : theme.keySearchHighlightTextStyle,
                 ),
-                Expanded(
-                  child: _HighlightedText(
-                    text: _valueDisplay(),
-                    highlightedText: searchTerm,
-                    style: valueStyle.copyWith(
-                      color: _valueColor(),
-                    ),
-                    highlightedStyle: valueStyle.copyWith(
-                      color: _valueColor(),
-                      backgroundColor: isSearchFocused
-                          ? Colors.deepPurpleAccent
-                          : Colors.grey,
+                const SizedBox(width: 4),
+                if (node.isRoot)
+                  rootInformationBuilder?.call(context, node) ??
+                      const SizedBox()
+                else
+                  Expanded(
+                    child: _HighlightedText(
+                      text: valueFormatter?.call(node.value) ??
+                          node.value.toString(),
+                      highlightedText: searchTerm,
+                      style: theme.valueTextStyle,
+                      highlightedStyle: isSearchFocused
+                          ? theme.focusedValueSearchHighlightTextStyle
+                          : theme.valueSearchHighlightTextStyle,
                     ),
                   ),
-                ),
               ],
             ),
           ),
@@ -150,21 +225,26 @@ class _JsonAttribute extends StatelessWidget {
     }
   }
 
-  String _valueDisplay() {
-    if (node.isClass) {
-      return '{${(node.childrenCount)}}';
-    } else if (node.isArray) {
-      return '[${node.childrenCount}]';
+  String _keyName() {
+    if (node.isRoot) {
+      return rootNameFormatter?.call(node.key) ?? '${node.key}:';
     }
-    return node.value.toString();
+    return propertyNameFormatter?.call(node.key) ?? '${node.key}:';
   }
 
-  Color _valueColor() {
-    if (node.isRoot) {
-      return Colors.grey;
-    }
-    return Colors.redAccent;
-  }
+  /// Default value for [collapsableToggleBuilder]
+  ///
+  /// A material [Icons.arrow_right] is displayed for collapsed nodes and
+  /// [Icons.arrow_drop_down] for expanded nodes.
+  static Widget _defaultCollapsableToggleBuilder(
+          BuildContext context, NodeViewModelState node) =>
+      node.isCollapsed
+          ? const Icon(
+              Icons.arrow_right,
+            )
+          : const Icon(
+              Icons.arrow_drop_down,
+            );
 }
 
 /// Creates the indentation lines and padding of each node depending on its
@@ -207,7 +287,9 @@ class _Indentation extends StatelessWidget {
           ),
         if (!node.isRoot)
           SizedBox(
-            width: indentationPadding * propertyPaddingFactor,
+            width: node.treeDepth > 0
+                ? indentationPadding * propertyPaddingFactor
+                : indentationPadding,
           ),
         if (node.isRoot && !node.isCollapsed) ...[
           Align(
