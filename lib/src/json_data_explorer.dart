@@ -165,15 +165,13 @@ class _JsonAttribute extends StatelessWidget {
         context.select<DataExplorerStore, String>((store) => store.searchTerm);
     final isKeySearchFocused = context.select<DataExplorerStore, bool>(
         (store) => store.searchResults.isNotEmpty
-            ? store.searchResults.elementAt(store.searchNodeFocusIndex).node ==
-                    node &&
-                store.searchResults.elementAt(store.searchNodeFocusIndex).key
+            ? store.focusedSearchResult.node == node &&
+                store.focusedSearchResult.key
             : false);
     final isValueSearchFocused = context.select<DataExplorerStore, bool>(
         (store) => store.searchResults.isNotEmpty
-            ? store.searchResults.elementAt(store.searchNodeFocusIndex).node ==
-                    node &&
-                store.searchResults.elementAt(store.searchNodeFocusIndex).value
+            ? store.focusedSearchResult.node == node &&
+                store.focusedSearchResult.value
             : false);
 
     final attributeKeyStyle =
@@ -222,13 +220,16 @@ class _JsonAttribute extends StatelessWidget {
                         child: collapsableToggleBuilder?.call(context, node) ??
                             _defaultCollapsableToggleBuilder(context, node),
                       ),
-                    _HighlightedText(
-                      text: _keyName(),
-                      highlightedText: searchTerm,
-                      style: attributeKeyStyle,
-                      highlightedStyle: isKeySearchFocused
-                          ? theme.focusedKeySearchNodeHighlightTextStyle
-                          : theme.keySearchHighlightTextStyle,
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: spacing),
+                      child: _HighlightedText(
+                        text: _keyName(),
+                        highlightedText: searchTerm,
+                        style: attributeKeyStyle,
+                        highlightedStyle: isKeySearchFocused
+                            ? theme.focusedKeySearchNodeHighlightTextStyle
+                            : theme.keySearchHighlightTextStyle,
+                      ),
                     ),
                     const SizedBox(width: 4),
                     if (node.isRoot)
@@ -236,14 +237,17 @@ class _JsonAttribute extends StatelessWidget {
                           const SizedBox()
                     else
                       Expanded(
-                        child: _HighlightedText(
-                          text: valueFormatter?.call(node.value) ??
-                              node.value.toString(),
-                          highlightedText: searchTerm,
-                          style: theme.valueTextStyle,
-                          highlightedStyle: isValueSearchFocused
-                              ? theme.focusedValueSearchHighlightTextStyle
-                              : theme.valueSearchHighlightTextStyle,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: spacing),
+                          child: _HighlightedText(
+                            text: valueFormatter?.call(node.value) ??
+                                node.value.toString(),
+                            highlightedText: searchTerm,
+                            style: theme.valueTextStyle,
+                            highlightedStyle: isValueSearchFocused
+                                ? theme.focusedValueSearchHighlightTextStyle
+                                : theme.valueSearchHighlightTextStyle,
+                          ),
                         ),
                       ),
                   ],

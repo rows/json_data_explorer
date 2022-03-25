@@ -1,7 +1,6 @@
 import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// A view model state that represents a single node item in a json object tree.
 /// A decoded json object can be converted to a [NodeViewModelState] by calling
@@ -361,20 +360,18 @@ List<NodeViewModelState> _flattenArray(List<NodeViewModelState> objects) {
 /// [ListView.builder] for example, or any other kind of list rendering widget.
 ///
 class DataExplorerStore extends ChangeNotifier {
-  final itemScrollController = ItemScrollController();
-
   List<NodeViewModelState> _displayNodes = [];
   UnmodifiableListView<NodeViewModelState> _allNodes = UnmodifiableListView([]);
 
   final _searchResults = <SearchResult>[];
   String _searchTerm = '';
-  var _searchNodeFocusIndex = 0;
+  var _focusedSearchResultIndex = 0;
 
   /// Gets the list of nodes to be displayed.
   ///
   /// [notifyListeners] is called whenever this value changes.
   /// The returned [Iterable] is closed for modification.
-  Iterable<NodeViewModelState> get displayNodes =>
+  UnmodifiableListView<NodeViewModelState> get displayNodes =>
       UnmodifiableListView(_displayNodes);
 
   /// Gets the current search term.
@@ -386,7 +383,7 @@ class DataExplorerStore extends ChangeNotifier {
   ///
   /// [notifyListeners] is called whenever this value changes.
   /// The returned [Iterable] is closed for modification.
-  Iterable<SearchResult> get searchResults =>
+  UnmodifiableListView<SearchResult> get searchResults =>
       UnmodifiableListView(_searchResults);
 
   /// Gets the current focused search node index.
@@ -397,7 +394,16 @@ class DataExplorerStore extends ChangeNotifier {
   /// current focused search node.
   ///
   /// [notifyListeners] is called whenever this value changes.
-  int get searchNodeFocusIndex => _searchNodeFocusIndex;
+  int get focusedSearchResultIndex => _focusedSearchResultIndex;
+
+  /// Gets the current focused search result.
+  ///
+  /// Use [focusNextSearchResult] and [focusPreviousSearchResult] to change the
+  /// current focused search node.
+  ///
+  /// [notifyListeners] is called whenever this value changes.
+  SearchResult get focusedSearchResult =>
+      _searchResults[_focusedSearchResultIndex];
 
   /// Collapses the given [node] so its children won't be visible.
   ///
@@ -512,7 +518,7 @@ class DataExplorerStore extends ChangeNotifier {
   void search(String term) {
     _searchTerm = term.toLowerCase();
     _searchResults.clear();
-    _searchNodeFocusIndex = 0;
+    _focusedSearchResultIndex = 0;
     notifyListeners();
 
     if (term.isNotEmpty) {
@@ -528,19 +534,9 @@ class DataExplorerStore extends ChangeNotifier {
   /// * [focusPreviousSearchResult]
   void focusNextSearchResult() {
     if (_searchResults.isNotEmpty &&
-        _searchNodeFocusIndex < _searchResults.length - 1) {
-      _searchNodeFocusIndex += 1;
+        _focusedSearchResultIndex < _searchResults.length - 1) {
+      _focusedSearchResultIndex += 1;
       notifyListeners();
-
-      final index =
-          _displayNodes.indexOf(_searchResults[_searchNodeFocusIndex].node);
-      if (index != -1) {
-        itemScrollController.scrollTo(
-          index: index,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOutCubic,
-        );
-      }
     }
   }
 
@@ -551,19 +547,9 @@ class DataExplorerStore extends ChangeNotifier {
   /// See also:
   /// * [focusNextSearchResult]
   void focusPreviousSearchResult() {
-    if (_searchResults.isNotEmpty && _searchNodeFocusIndex > 0) {
-      _searchNodeFocusIndex -= 1;
+    if (_searchResults.isNotEmpty && _focusedSearchResultIndex > 0) {
+      _focusedSearchResultIndex -= 1;
       notifyListeners();
-
-      final index =
-          _displayNodes.indexOf(_searchResults[_searchNodeFocusIndex].node);
-      if (index != -1) {
-        itemScrollController.scrollTo(
-          index: index,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOutCubic,
-        );
-      }
     }
   }
 
