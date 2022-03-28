@@ -11,12 +11,17 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages). 
 -->
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+A highly customizable widget to render JSON objects.
+
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- Expand and collapse classes and array nodes.
+- Dynamic search with highlight.
+- Configurable theme and interactions.
+- Configurable data display format.
+- Indentation guidelines.
+- Interaction with URL values.
 
 ## Getting started
 
@@ -25,12 +30,55 @@ start using the package.
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+The data to be displayed is managed by a store, the `DataExplorerStore`. 
+In order to use all features from this package you need to register it in 
+a [Provider](https://pub.dev/packages/provider).
 
 ```dart
-const like = 'sample';
+final DataExplorerStore store = DataExplorerStore();
+
+/// ...
+ChangeNotifierProvider.value(
+  value: store,
+  child:
+/// ...
 ```
+
+To load a json object, use  `DataExplorerStore.build` nodes method.
+
+```dart
+store.buildNodes(json.decode(myJson));
+```
+
+To display the data explorer, you can use the `JsonDataExplorer` widget. 
+The only required parameter is a list of node models, which you can take
+from the `DataExplorerStore` after a json was decoded.
+
+```dart
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(widget.title),
+    ),
+    body: SafeArea(
+      minimum: const EdgeInsets.all(16),
+      child: ChangeNotifierProvider.value(
+        value: store,
+        child: Consumer<DataExplorerStore>(
+          builder: (context, state, child) => JsonDataExplorer(
+            nodes: state.displayNodes,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+```
+
+This will display a decoded json using a default theme.
+
+Check the `/example` app for more information on how to customize the
+look and feel of `JsonDataExplorer`.
 
 ## Additional information
 
