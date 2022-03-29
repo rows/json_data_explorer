@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:data_explorer/data_explorer.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:json_data_explorer/json_data_explorer.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockCallbackFunction extends Mock {

@@ -1,10 +1,10 @@
-import 'package:data_explorer/src/data_explorer_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'data_explorer_store.dart';
+import 'data_explorer_theme.dart';
 
 /// Signature for a function that creates a widget based on a
 /// [NodeViewModelState] state.
