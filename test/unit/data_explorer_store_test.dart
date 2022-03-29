@@ -418,6 +418,146 @@ void main() {
         expect(store.areAllExpanded(), isFalse);
       });
     });
+
+    group('search', () {
+      test('can search', () {
+        final store = DataExplorerStore();
+        store.buildNodes(json.decode(testJson));
+
+        final listener = MockCallbackFunction();
+        store.addListener(listener);
+        store.search('firstField');
+
+        expect(store.searchResults, hasLength(20));
+        verify(() => listener.call()).called(2);
+      });
+
+      test('a new search clears previous results', () {
+        final store = DataExplorerStore();
+        store.buildNodes(json.decode(testJson));
+
+        store.search('firstField');
+        expect(store.searchResults, hasLength(20));
+        store.search('no results');
+        expect(store.searchResults, isEmpty);
+      });
+
+      test('create search results for both key and values', () {
+        final store = DataExplorerStore();
+        store.buildNodes(json.decode(testJson));
+        store.search('firstField');
+
+        final expectedNode = store.displayNodes.elementAt(1);
+        final firstMatch = store.searchResults.first;
+        expect(firstMatch.node, expectedNode);
+        expect(firstMatch.key, isTrue);
+        expect(firstMatch.value, isFalse);
+
+        final secondMatch = store.searchResults.elementAt(1);
+        expect(secondMatch.node, expectedNode);
+        expect(secondMatch.key, isFalse);
+        expect(secondMatch.value, isTrue);
+      });
+
+      test('moves focus to next result', () {
+        final store = DataExplorerStore();
+        store.buildNodes(json.decode(testJson));
+
+        store.search('firstField');
+        expect(store.focusedSearchResultIndex, 0);
+
+        final listener = MockCallbackFunction();
+        store.addListener(listener);
+        store.focusNextSearchResult();
+
+        expect(store.focusedSearchResultIndex, 1);
+        expect(store.focusedSearchResult, store.searchResults.elementAt(1));
+        verify(() => listener.call()).called(1);
+      });
+
+      test('moves focus to previous result', () {
+        final store = DataExplorerStore();
+        store.buildNodes(json.decode(testJson));
+
+        store.search('firstField');
+        expect(store.focusedSearchResultIndex, 0);
+        store.focusNextSearchResult();
+        store.focusNextSearchResult();
+
+        final listener = MockCallbackFunction();
+        store.addListener(listener);
+        store.focusPreviousSearchResult();
+
+        expect(store.focusedSearchResultIndex, 1);
+        expect(store.focusedSearchResult, store.searchResults.elementAt(1));
+        verify(() => listener.call()).called(1);
+      });
+
+      test('focus next result does nothing when there are no results', () {
+        final store = DataExplorerStore();
+        store.buildNodes(json.decode(testJson));
+
+        store.search('no results');
+        expect(store.focusedSearchResultIndex, 0);
+
+        final listener = MockCallbackFunction();
+        store.addListener(listener);
+        store.focusNextSearchResult();
+
+        expect(store.focusedSearchResultIndex, 0);
+        verifyNever(() => listener.call());
+      });
+
+      test('focus previous result does nothing when there are no results', () {
+        final store = DataExplorerStore();
+        store.buildNodes(json.decode(testJson));
+
+        store.search('no results');
+        expect(store.focusedSearchResultIndex, 0);
+
+        final listener = MockCallbackFunction();
+        store.addListener(listener);
+        store.focusPreviousSearchResult();
+
+        expect(store.focusedSearchResultIndex, 0);
+        verifyNever(() => listener.call());
+      });
+
+      test('focus next result does nothing when the last result is focused',
+          () {
+        final store = DataExplorerStore();
+        store.buildNodes(json.decode(testJson));
+
+        store.search('firstClass.firstClassField');
+        expect(store.searchResults, hasLength(1));
+        expect(store.focusedSearchResultIndex, 0);
+
+        final listener = MockCallbackFunction();
+        store.addListener(listener);
+        store.focusNextSearchResult();
+
+        expect(store.focusedSearchResultIndex, 0);
+        verifyNever(() => listener.call());
+      });
+
+      test(
+          'focus previous result does nothing when the first result is focused',
+          () {
+        final store = DataExplorerStore();
+        store.buildNodes(json.decode(testJson));
+
+        store.search('firstField');
+        expect(store.searchResults, hasLength(20));
+        expect(store.focusedSearchResultIndex, 0);
+
+        final listener = MockCallbackFunction();
+        store.addListener(listener);
+        store.focusPreviousSearchResult();
+
+        expect(store.focusedSearchResultIndex, 0);
+        verifyNever(() => listener.call());
+      });
+    });
   });
 }
 

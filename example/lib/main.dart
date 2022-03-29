@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 void main() => runApp(const MyApp());
 
@@ -111,6 +112,7 @@ class DataExplorerPage extends StatefulWidget {
 
 class _DataExplorerPageState extends State<DataExplorerPage> {
   final searchController = TextEditingController();
+  final itemScrollController = ItemScrollController();
   final DataExplorerStore store = DataExplorerStore();
 
   @override
@@ -150,15 +152,21 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                     ),
                     if (state.searchResults.isNotEmpty)
                       Text(
-                          '${state.searchNodeFocusIndex + 1} of ${state.searchResults.length}'),
+                          '${state.focusedSearchResultIndex + 1} of ${state.searchResults.length}'),
                     if (state.searchResults.isNotEmpty)
                       IconButton(
-                        onPressed: () => store.focusPreviousSearchResult(),
+                        onPressed: () {
+                          store.focusPreviousSearchResult();
+                          scrollToSearchMatch();
+                        },
                         icon: const Icon(Icons.arrow_drop_up),
                       ),
                     if (state.searchResults.isNotEmpty)
                       IconButton(
-                        onPressed: () => store.focusNextSearchResult(),
+                        onPressed: () {
+                          store.focusNextSearchResult();
+                          scrollToSearchMatch();
+                        },
                         icon: const Icon(Icons.arrow_drop_down),
                       ),
                   ],
@@ -189,7 +197,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                 Expanded(
                   child: JsonDataExplorer(
                     nodes: state.displayNodes,
-                    itemScrollController: state.itemScrollController,
+                    itemScrollController: itemScrollController,
                     itemSpacing: 4,
 
                     /// Builds a widget after each root node displaying the
@@ -316,6 +324,17 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
       return;
     }
     print('${node.key}: ${node.value}');
+  }
+
+  void scrollToSearchMatch() {
+    final index = store.displayNodes.indexOf(store.focusedSearchResult.node);
+    if (index != -1) {
+      itemScrollController.scrollTo(
+        index: index,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOutCubic,
+      );
+    }
   }
 
   @override
