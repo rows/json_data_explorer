@@ -54,6 +54,7 @@ class NodeViewModelState extends ChangeNotifier {
   final int childrenCount;
 
   bool _isHighlighted = false;
+  bool _isFocused = false;
   bool _isCollapsed;
 
   NodeViewModelState._({
@@ -130,6 +131,12 @@ class NodeViewModelState extends ChangeNotifier {
   ///  registered listeners.
   bool get isHighlighted => _isHighlighted;
 
+  /// Returns [true] if this node is focused.
+  ///
+  /// This is a mutable property, [notifyListeners] is called to notify all
+  ///  registered listeners.
+  bool get isFocused => _isFocused;
+
   /// Returns [true] if this node is collapsed.
   ///
   /// This is a mutable property, [notifyListeners] is called to notify all
@@ -160,6 +167,14 @@ class NodeViewModelState extends ChangeNotifier {
     for (var children in children) {
       children.highlight(highlight);
     }
+    notifyListeners();
+  }
+
+  /// Sets the focus property of this node.
+  ///
+  /// [notifyListeners] is called to notify all registered listeners.
+  void focus(bool focus) {
+    _isFocused = focus;
     notifyListeners();
   }
 

@@ -190,6 +190,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                   child: JsonDataExplorer(
                     nodes: state.displayNodes,
                     itemScrollController: state.itemScrollController,
+                    itemSpacing: 4,
 
                     /// Builds a widget after each root node displaying the
                     /// number of children nodes that it has. Displays `{x}`
@@ -225,6 +226,22 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                       duration: const Duration(milliseconds: 300),
                       child: const Icon(Icons.arrow_drop_down),
                     ),
+
+                    /// Builds a trailing widget that copies the node key: value
+                    ///
+                    /// Uses [NodeViewModelState.isFocused] to display the
+                    /// widget only in focused widgets.
+                    trailingBuilder: (context, node) => node.isFocused
+                        ? IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(maxHeight: 18),
+                            icon: const Icon(
+                              Icons.copy,
+                              size: 18,
+                            ),
+                            onPressed: () => _printNode(node),
+                          )
+                        : const SizedBox(),
 
                     /// Creates a custom format for classes and array names.
                     rootNameFormatter: (name) => '$name',
@@ -290,6 +307,15 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
     print('Done!');
     var decoded = json.decode(data);
     store.buildNodes(decoded, isAllCollapsed: true);
+  }
+
+  void _printNode(NodeViewModelState node) {
+    if (node.isRoot) {
+      final value = node.isClass ? 'class' : 'array';
+      print('${node.key}: $value');
+      return;
+    }
+    print('${node.key}: ${node.value}');
   }
 
   @override
