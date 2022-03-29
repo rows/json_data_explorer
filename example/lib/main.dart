@@ -320,10 +320,10 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
   void _printNode(NodeViewModelState node) {
     if (node.isRoot) {
       final value = node.isClass ? 'class' : 'array';
-      print('${node.key}: $value');
+      debugPrint('${node.key}: $value');
       return;
     }
-    print('${node.key}: ${node.value}');
+    debugPrint('${node.key}: ${node.value}');
   }
 
   void scrollToSearchMatch() {
