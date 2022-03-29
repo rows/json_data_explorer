@@ -2,6 +2,7 @@ import 'package:data_explorer/src/data_explorer_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'data_explorer_store.dart';
 
@@ -161,6 +162,7 @@ class _JsonAttribute extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final valueIsUrl = _valueIsUrl();
     final searchTerm =
         context.select<DataExplorerStore, String>((store) => store.searchTerm);
     final isKeySearchFocused = context.select<DataExplorerStore, bool>(
@@ -180,7 +182,9 @@ class _JsonAttribute extends StatelessWidget {
     final spacing = itemSpacing / 2;
 
     return MouseRegion(
-      cursor: node.isRoot ? SystemMouseCursors.click : MouseCursor.defer,
+      cursor: node.isRoot || valueIsUrl
+          ? SystemMouseCursors.click
+          : MouseCursor.defer,
       onEnter: (event) {
         node.highlight(true);
         node.focus(true);
@@ -191,7 +195,7 @@ class _JsonAttribute extends StatelessWidget {
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: node.isRoot ? () => _onTap(context) : null,
+        onTap: node.isRoot || valueIsUrl ? () => _onTap(context) : null,
         child: AnimatedBuilder(
           animation: node,
 
@@ -243,7 +247,11 @@ class _JsonAttribute extends StatelessWidget {
                             text: valueFormatter?.call(node.value) ??
                                 node.value.toString(),
                             highlightedText: searchTerm,
-                            style: theme.valueTextStyle,
+                            style: valueIsUrl
+                                ? theme.valueTextStyle.copyWith(
+                                    decoration: TextDecoration.underline,
+                                  )
+                                : theme.valueTextStyle,
                             highlightedStyle: isValueSearchFocused
                                 ? theme.focusedValueSearchHighlightTextStyle
                                 : theme.valueSearchHighlightTextStyle,
@@ -266,14 +274,19 @@ class _JsonAttribute extends StatelessWidget {
   }
 
   Future _onTap(BuildContext context) async {
-    final dataExplorerStore = Provider.of<DataExplorerStore>(
-      context,
-      listen: false,
-    );
-    if (node.isCollapsed) {
-      dataExplorerStore.expandNode(node);
-    } else {
-      dataExplorerStore.collapseNode(node);
+    if (_valueIsUrl()) {
+      return launch(node.value);
+    }
+    if (node.isRoot) {
+      final dataExplorerStore = Provider.of<DataExplorerStore>(
+        context,
+        listen: false,
+      );
+      if (node.isCollapsed) {
+        dataExplorerStore.expandNode(node);
+      } else {
+        dataExplorerStore.collapseNode(node);
+      }
     }
   }
 
@@ -282,6 +295,13 @@ class _JsonAttribute extends StatelessWidget {
       return rootNameFormatter?.call(node.key) ?? '${node.key}:';
     }
     return propertyNameFormatter?.call(node.key) ?? '${node.key}:';
+  }
+
+  bool _valueIsUrl() {
+    if (node.value is String) {
+      return Uri.tryParse(node.value)?.hasAbsolutePath ?? false;
+    }
+    return false;
   }
 
   /// Default value for [collapsableToggleBuilder]
