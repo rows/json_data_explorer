@@ -396,7 +396,6 @@ class _HighlightedText extends StatelessWidget {
   final String highlightedText;
   final TextStyle style;
   final TextStyle highlightedStyle;
-  final TextAlign textAlign;
 
   const _HighlightedText({
     Key? key,
@@ -404,7 +403,6 @@ class _HighlightedText extends StatelessWidget {
     required this.highlightedText,
     required this.style,
     required this.highlightedStyle,
-    this.textAlign = TextAlign.start,
   }) : super(key: key);
 
   @override
@@ -448,7 +446,7 @@ class _HighlightedText extends StatelessWidget {
       text: TextSpan(
         children: spans,
       ),
-      textAlign: textAlign,
+      textAlign: TextAlign.start,
     );
   }
 }

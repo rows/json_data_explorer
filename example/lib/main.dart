@@ -310,9 +310,9 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
   }
 
   Future loadJsonDataFrom(String url) async {
-    print('Calling Json API');
+    debugPrint('Calling Json API');
     final data = await http.read(Uri.parse(url));
-    print('Done!');
+    debugPrint('Done!');
     var decoded = json.decode(data);
     store.buildNodes(decoded, isAllCollapsed: true);
   }

@@ -88,10 +88,10 @@ class DataExplorerTheme {
     required this.valueSearchHighlightTextStyle,
     required this.focusedKeySearchNodeHighlightTextStyle,
     required this.focusedValueSearchHighlightTextStyle,
-    this.indentationLineColor = Colors.grey,
-    this.highlightColor,
-    this.indentationPadding = 8.0,
-    this.propertyIndentationPaddingFactor = 4,
+    required this.indentationLineColor,
+    required this.highlightColor,
+    required this.indentationPadding,
+    required this.propertyIndentationPaddingFactor,
   });
 
   /// Default theme used if no theme is set.
@@ -134,6 +134,10 @@ class DataExplorerTheme {
       fontWeight: FontWeight.bold,
       backgroundColor: Colors.lightGreen,
     ),
+    indentationLineColor: Colors.grey,
+    highlightColor: Colors.blue,
+    indentationPadding: 8.0,
+    propertyIndentationPaddingFactor: 4,
   );
 
   DataExplorerTheme copyWith({
