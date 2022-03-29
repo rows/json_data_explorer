@@ -1,8 +1,8 @@
-name: data_explorer
-description: A new Flutter project.
+name: json_data_explorer
+description: A Flutter package to display json objects.
 version: 0.0.1
-repository: https://github.com/rows/data-explorer
-homepage: https://github.com/rows/data-explorer
+repository: https://github.com/rows/json-data-explorer
+homepage: https://github.com/rows/json-data-explorer
 
 environment:
   sdk: ">=2.17.0-69.2.beta <3.0.0"

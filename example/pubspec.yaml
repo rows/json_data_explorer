@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  data_explorer:
+  json_data_explorer:
     path: ../
 
   http: ^0.13.4

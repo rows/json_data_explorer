@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:data_explorer/data_explorer.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:json_data_explorer/json_data_explorer.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
