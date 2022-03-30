@@ -85,7 +85,7 @@ void main() {
 
     test('build all collapsed nodes', () {
       final store = DataExplorerStore();
-      store.buildNodes(json.decode(testJson), isAllCollapsed: true);
+      store.buildNodes(json.decode(testJson), areAllCollapsed: true);
       expect(store.displayNodes, hasLength(2));
       expect(store.displayNodes.elementAt(0).key, 'firstClass');
       expect(store.displayNodes.elementAt(1).key, 'secondClass');
@@ -107,7 +107,7 @@ void main() {
       final listener = MockCallbackFunction();
       store.addListener(listener);
 
-      store.buildNodes(json.decode(testJson), isAllCollapsed: true);
+      store.buildNodes(json.decode(testJson), areAllCollapsed: true);
       verify(() => listener.call()).called(1);
     });
 
@@ -130,7 +130,7 @@ void main() {
 
     test('expand all nodes', () {
       final store = DataExplorerStore();
-      store.buildNodes(json.decode(testJson), isAllCollapsed: true);
+      store.buildNodes(json.decode(testJson), areAllCollapsed: true);
 
       final listener = MockCallbackFunction();
       store.addListener(listener);
@@ -181,7 +181,7 @@ void main() {
 
     test("collapse won't do anything for already collapsed nodes", () {
       final store = DataExplorerStore();
-      store.buildNodes(json.decode(testJson), isAllCollapsed: true);
+      store.buildNodes(json.decode(testJson), areAllCollapsed: true);
       expect(store.displayNodes, hasLength(2));
 
       final listener = MockCallbackFunction();
@@ -196,7 +196,7 @@ void main() {
 
     test('expand node', () {
       final store = DataExplorerStore();
-      store.buildNodes(json.decode(testJson), isAllCollapsed: true);
+      store.buildNodes(json.decode(testJson), areAllCollapsed: true);
 
       final listener = MockCallbackFunction();
       store.addListener(listener);
@@ -215,7 +215,7 @@ void main() {
 
     test("expand won't do anything for non root nodes", () {
       final store = DataExplorerStore();
-      store.buildNodes(json.decode(testJson), isAllCollapsed: true);
+      store.buildNodes(json.decode(testJson), areAllCollapsed: true);
       store.expandNode(store.displayNodes.first);
       expect(store.displayNodes, hasLength(8));
 
@@ -284,18 +284,18 @@ void main() {
     });
 
     group('areAllCollapsed', () {
-      test('works properly when nodes are built with isAllCollapsed as false',
+      test('works properly when nodes are built with areAllCollapsed as false',
           () {
         final store = DataExplorerStore();
-        store.buildNodes(json.decode(testJson), isAllCollapsed: false);
+        store.buildNodes(json.decode(testJson), areAllCollapsed: false);
 
         expect(store.areAllCollapsed(), isFalse);
       });
 
-      test('works properly when nodes are built with isAllCollapsed as true',
+      test('works properly when nodes are built with areAllCollapsed as true',
           () {
         final store = DataExplorerStore();
-        store.buildNodes(json.decode(testJson), isAllCollapsed: true);
+        store.buildNodes(json.decode(testJson), areAllCollapsed: true);
 
         expect(store.areAllCollapsed(), isTrue);
       });
@@ -303,7 +303,7 @@ void main() {
       test('''works properly when collapsing a root class child that has 
       inner classes that are not collapsed''', () {
         final store = DataExplorerStore();
-        store.buildNodes(json.decode(testJson), isAllCollapsed: true);
+        store.buildNodes(json.decode(testJson), areAllCollapsed: true);
 
         store.expandNode(store.getNodeByKey('firstClass'));
         store.expandNode(store.getNodeByKey('firstClass.firstClassField'));
@@ -319,7 +319,7 @@ void main() {
 
       test('works properly when collapsing each node individually', () {
         final store = DataExplorerStore();
-        store.buildNodes(json.decode(testJson), isAllCollapsed: false);
+        store.buildNodes(json.decode(testJson), areAllCollapsed: false);
 
         expect(store.areAllCollapsed(), isFalse);
 
@@ -361,25 +361,25 @@ void main() {
     });
 
     group('areAllExpanded', () {
-      test('works properly when nodes are built with isAllCollapsed as false',
+      test('works properly when nodes are built with areAllCollapsed as false',
           () {
         final store = DataExplorerStore();
-        store.buildNodes(json.decode(testJson), isAllCollapsed: false);
+        store.buildNodes(json.decode(testJson), areAllCollapsed: false);
 
         expect(store.areAllExpanded(), isTrue);
       });
 
-      test('works properly when nodes are built with isAllCollapsed as true',
+      test('works properly when nodes are built with areAllCollapsed as true',
           () {
         final store = DataExplorerStore();
-        store.buildNodes(json.decode(testJson), isAllCollapsed: true);
+        store.buildNodes(json.decode(testJson), areAllCollapsed: true);
 
         expect(store.areAllExpanded(), isFalse);
       });
 
       test('works properly when expanding each node individually', () {
         final store = DataExplorerStore();
-        store.buildNodes(json.decode(testJson), isAllCollapsed: true);
+        store.buildNodes(json.decode(testJson), areAllCollapsed: true);
 
         expect(store.areAllExpanded(), isFalse);
 

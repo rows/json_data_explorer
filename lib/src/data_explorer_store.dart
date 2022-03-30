@@ -555,17 +555,17 @@ class DataExplorerStore extends ChangeNotifier {
 
   /// Uses the given [jsonObject] to build the [displayNodes] list.
   ///
-  /// If [isAllCollapsed] is true, then all nodes will be collapsed, and
+  /// If [areAllCollapsed] is true, then all nodes will be collapsed, and
   /// initially only upper root nodes will be in the list.
   ///
   /// [notifyListeners] is called to notify all registered listeners.
-  Future buildNodes(dynamic jsonObject, {bool isAllCollapsed = false}) async {
+  Future buildNodes(dynamic jsonObject, {bool areAllCollapsed = false}) async {
     final builtNodes = buildViewModelNodes(jsonObject);
     final flatList = flatten(builtNodes);
 
     _allNodes = UnmodifiableListView(flatList);
     _displayNodes = List.from(flatList);
-    if (isAllCollapsed) {
+    if (areAllCollapsed) {
       collapseAll();
     } else {
       notifyListeners();
