@@ -140,6 +140,9 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                     Expanded(
                       child: TextField(
                         controller: searchController,
+
+                        /// Delegates the search to [DataExplorerStore] when
+                        /// the text field changes.
                         onChanged: (term) => state.search(term),
                         maxLines: 1,
                         decoration: const InputDecoration(
