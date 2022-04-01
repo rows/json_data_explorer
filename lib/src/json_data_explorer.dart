@@ -15,10 +15,63 @@ typedef NodeBuilder = Widget Function(
 /// string.
 typedef Formatter = String Function(dynamic value);
 
+/// A widget to display a list of Json nodes.
+///
+/// The [DataExplorerStore] handles the state of the data structure, so a
+/// [DataExplorerStore] must be available through a [Provider] for this widget
+/// to fully function, without it, expand and collapse will not work properly.
+///
+/// {@tool snippet}
+/// ```dart
+/// DataExplorerStore store;
+/// // ...
+/// ChangeNotifierProvider.value(
+///   value: store,
+///   child:
+/// // ...
+/// ```
+///
+/// And then a [JsonDataExplorer] can be built using the store data structure:
+/// {@tool snippet}
+/// ```dart
+/// Widget build(BuildContext context) {
+///   return Scaffold(
+///     appBar: AppBar(
+///       title: Text(widget.title),
+///     ),
+///     body: SafeArea(
+///       minimum: const EdgeInsets.all(16),
+///       child: ChangeNotifierProvider.value(
+///         value: store,
+///         child: Consumer<DataExplorerStore>(
+///           builder: (context, state, child) => JsonDataExplorer(
+///             nodes: state.displayNodes,
+///           ),
+///         ),
+///       ),
+///     ),
+///   );
+/// }
+/// ```
+/// {@end-tool}
 class JsonDataExplorer extends StatelessWidget {
+  /// Nodes to be displayed.
+  ///
+  /// See also:
+  /// * [DataExplorerStore]
   final Iterable<NodeViewModelState> nodes;
+
+  /// Use to control the scroll.
+  ///
+  /// Used to jump or scroll to a particular position.
   final ItemScrollController? itemScrollController;
+
+  /// Use to listen to scroll position changes.
   final ItemPositionsListener? itemPositionsListener;
+
+  /// Theme used to render the widgets.
+  ///
+  /// If not set, a default theme will be used.
   final DataExplorerTheme theme;
 
   /// A builder to add a widget as a suffix for root nodes.
@@ -105,6 +158,7 @@ class JsonDataExplorer extends StatelessWidget {
 }
 
 class _JsonAttribute extends StatelessWidget {
+  /// Node to be displayed.
   final NodeViewModelState node;
 
   /// A builder to add a widget as a suffix for root nodes.
