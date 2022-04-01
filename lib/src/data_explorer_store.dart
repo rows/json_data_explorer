@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
@@ -654,21 +655,13 @@ class DataExplorerStore extends ChangeNotifier {
   }
 
   void _expandAboveNodes(NodeViewModelState belowNode) {
-    final aboveNodes = _getAboveNodes(belowNode);
+    for (final node in _allNodes) {
+      if (node.children.contains(belowNode)) {
+        expandNode(node);
 
-    for (final node in aboveNodes) {
-      if (node.childrenOfNextDepth(belowNode.treeDepth).contains(belowNode)) {
-        expandNode(node);
-      } else if (node.treeDepth < belowNode.treeDepth - 1) {
-        expandNode(node);
+        _expandAboveNodes(node);
       }
     }
-  }
-
-  List<NodeViewModelState> _getAboveNodes(NodeViewModelState belowNode) {
-    return _allNodes
-        .where((node) => node.treeDepth < belowNode.treeDepth)
-        .toList();
   }
 }
 
