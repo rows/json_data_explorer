@@ -638,28 +638,43 @@ class DataExplorerStore extends ChangeNotifier {
   }
 
   void _doSearch() {
+    final path = <NodeViewModelState>[];
+
     for (final node in _allNodes) {
+      bool found = false;
+
       if (node.key.toLowerCase().contains(searchTerm)) {
         _searchResults.add(SearchResult(node, key: true));
-        _expandAboveNodes(node);
+        found = true;
       }
       if (!node.isRoot) {
         if (node.value.toString().toLowerCase().contains(searchTerm)) {
           _searchResults.add(SearchResult(node, value: true));
-          _expandAboveNodes(node);
+          found = true;
         }
+      }
+
+      if (node.isRoot) {
+        path.add(node);
+      }
+
+      if (found) {
+        _expandParentNodes(path: path, node: node);
       }
     }
 
     notifyListeners();
   }
 
-  void _expandAboveNodes(NodeViewModelState belowNode) {
-    for (final node in _allNodes) {
-      if (node.children.contains(belowNode)) {
-        expandNode(node);
+  void _expandParentNodes({
+    required List<NodeViewModelState> path,
+    required NodeViewModelState node,
+  }) {
+    for (final element in path) {
+      if (element.children.contains(node)) {
+        _expandParentNodes(path: path, node: element);
 
-        _expandAboveNodes(node);
+        expandNode(element);
       }
     }
   }
