@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
@@ -183,10 +182,6 @@ class NodeViewModelState extends ChangeNotifier {
       return value as List<NodeViewModelState>;
     }
     return [];
-  }
-
-  Iterable<NodeViewModelState> childrenOfNextDepth(int nextDepth) {
-    return children.where((element) => element.treeDepth == nextDepth);
   }
 
   /// Sets the highlight property of this node and all of its children.
