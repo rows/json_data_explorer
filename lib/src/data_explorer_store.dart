@@ -184,6 +184,10 @@ class NodeViewModelState extends ChangeNotifier {
     return [];
   }
 
+  Iterable<NodeViewModelState> childrenOfNextDepth(int nextDepth) {
+    return children.where((element) => element.treeDepth == nextDepth);
+  }
+
   /// Sets the highlight property of this node and all of its children.
   ///
   /// [notifyListeners] is called to notify all registered listeners.
@@ -636,14 +640,35 @@ class DataExplorerStore extends ChangeNotifier {
     for (final node in _allNodes) {
       if (node.key.toLowerCase().contains(searchTerm)) {
         _searchResults.add(SearchResult(node, key: true));
+        _expandAboveNodes(node);
       }
       if (!node.isRoot) {
         if (node.value.toString().toLowerCase().contains(searchTerm)) {
           _searchResults.add(SearchResult(node, value: true));
+          _expandAboveNodes(node);
         }
       }
     }
+
     notifyListeners();
+  }
+
+  void _expandAboveNodes(NodeViewModelState belowNode) {
+    final aboveNodes = _getAboveNodes(belowNode);
+
+    for (final node in aboveNodes) {
+      if (node.childrenOfNextDepth(belowNode.treeDepth).contains(belowNode)) {
+        expandNode(node);
+      } else if (node.treeDepth < belowNode.treeDepth - 1) {
+        expandNode(node);
+      }
+    }
+  }
+
+  List<NodeViewModelState> _getAboveNodes(NodeViewModelState belowNode) {
+    return _allNodes
+        .where((node) => node.treeDepth < belowNode.treeDepth)
+        .toList();
   }
 }
 
