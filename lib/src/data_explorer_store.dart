@@ -638,9 +638,18 @@ class DataExplorerStore extends ChangeNotifier {
   }
 
   void _doSearch() {
+    // Save the nodes that have been iterated over.
+    //
+    // Can be performant when the user has searched a node that is far
+    // from the end of the tree due to not having to iterate all the parent nodes
+    // of the searched node but instead, only the ones saved in this list.
     final path = <NodeViewModelState>[];
 
     for (final node in _allNodes) {
+      // Whether a node with the the given `searchTerm` has been found.
+      //
+      // In case it's true, on the end of the current iteration, the parent nodes
+      // of the searched node will be expanded.
       bool found = false;
 
       if (node.key.toLowerCase().contains(searchTerm)) {
@@ -666,6 +675,7 @@ class DataExplorerStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Expands all the parent nodes of [node] in the given [path].
   void _expandParentNodes({
     required List<NodeViewModelState> path,
     required NodeViewModelState node,
