@@ -111,43 +111,7 @@ class DataExplorerPage extends StatefulWidget {
 }
 
 class _DataExplorerPageState extends State<DataExplorerPage> {
-  late final JsonDataExplorerStore store;
-
-  @override
-  void initState() {
-    super.initState();
-
-    store = JsonDataExplorerStore();
-
-    loadJsonDataFrom(widget.jsonUrl);
-  }
-
-  Future loadJsonDataFrom(String url) async {
-    debugPrint('Calling Json API');
-    final data = await http.read(Uri.parse(url));
-    debugPrint('Done!');
-    var decoded = json.decode(data);
-    await store.initializeNode(decoded);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
-      body: ChangeNotifierProvider.value(
-        value: store,
-        child: Consumer<JsonDataExplorerStore>(
-          builder: (context, store, child) {
-            final isClass = store.node is ClassNode;
-
-            return Text('$isClass');
-          },
-        ),
-      ),
-    );
-  }
-
-  /* final searchController = TextEditingController();
+  final searchController = TextEditingController();
   final itemScrollController = ItemScrollController();
   final DataExplorerStore store = DataExplorerStore();
 
@@ -381,7 +345,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
   void dispose() {
     searchController.dispose();
     super.dispose();
-  } */
+  }
 }
 
 /// A button that navigates to the data explorer page on pressed.
