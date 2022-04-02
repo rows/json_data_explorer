@@ -568,6 +568,7 @@ void main() {
           store.buildNodes(json.decode(testJson), areAllCollapsed: true);
 
           store.search('secondClass.firstClassField');
+          store.expandSearchResults();
 
           expect(store.getNodeByKey('firstClass').isCollapsed, isTrue);
         });
@@ -577,6 +578,7 @@ void main() {
           store.buildNodes(json.decode(testJson), areAllCollapsed: true);
 
           store.search('secondClassField.thirdField');
+          store.expandSearchResults();
 
           expect(store.getNodeByKey('firstClass').isCollapsed, isFalse);
 

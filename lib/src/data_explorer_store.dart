@@ -633,51 +633,35 @@ class DataExplorerStore extends ChangeNotifier {
   }
 
   void _doSearch() {
-    // Save the nodes that have been iterated over.
-    //
-    // Can be performant when the user has searched a node that is far
-    // from the end of the tree due to not having to iterate all the parent nodes
-    // of the searched node but instead, only the ones saved in this list.
-    final path = <NodeViewModelState>[];
-
     for (final node in _allNodes) {
-      // Whether a node with the the given `searchTerm` has been found.
-      //
-      // In case it's true, on the end of the current iteration, the parent nodes
-      // of the searched node will be expanded.
-      bool found = false;
-
       if (node.key.toLowerCase().contains(searchTerm)) {
         _searchResults.add(SearchResult(node, key: true));
-        found = true;
       }
       if (!node.isRoot) {
         if (node.value.toString().toLowerCase().contains(searchTerm)) {
           _searchResults.add(SearchResult(node, value: true));
-          found = true;
         }
-      }
-
-      if (node.isRoot) {
-        path.add(node);
-      }
-
-      if (found) {
-        _expandParentNodes(path: path, node: node);
       }
     }
 
     notifyListeners();
   }
 
-  /// Expands all the parent nodes of [node] in the given [path].
-  void _expandParentNodes({
-    required List<NodeViewModelState> path,
-    required NodeViewModelState node,
-  }) {
-    for (final element in path) {
-      if (element.children.contains(node)) {
-        _expandParentNodes(path: path, node: element);
+  /// Expands all the parent nodes of each [SearchResult.node] in [searchResults].
+  void expandSearchResults() {
+    if (searchResults.isEmpty) {
+      return;
+    }
+
+    for (final searchResult in searchResults) {
+      _expandParentNode(node: searchResult.node);
+    }
+  }
+
+  void _expandParentNode({required NodeViewModelState node}) {
+    for (final element in _allNodes) {
+      if (element.isRoot && element.children.contains(node)) {
+        _expandParentNode(node: element);
 
         expandNode(element);
       }
