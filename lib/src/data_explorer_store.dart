@@ -55,14 +55,14 @@ class NodeViewModelState extends ChangeNotifier {
   /// [List<NodeViewModelState>].
   dynamic value;
 
-  void _setParentNode(NodeViewModelState? parentNode) {
-    _parentNode = parentNode;
-  }
-
   NodeViewModelState? get parentNode => _parentNode;
 
-  void _setValue(dynamic value) {
-    this.value = value;
+  void _setNodeHierarchy({
+    required NodeViewModelState? parentNode,
+    required dynamic children,
+  }) {
+    _parentNode = parentNode;
+    value = children;
   }
 
   int get childrenCount {
@@ -240,14 +240,13 @@ Map<String, NodeViewModelState> _buildClassNodes({
         key: key,
       );
 
-      final subClass = _buildClassNodes(
+      final children = _buildClassNodes(
         object: value,
         treeDepth: treeDepth + 1,
         parentNode: classNode,
       );
 
-      classNode._setParentNode(parentNode);
-      classNode._setValue(subClass);
+      classNode._setNodeHierarchy(parentNode: parentNode, children: children);
 
       map[key] = classNode;
     } else if (value is List) {
@@ -256,14 +255,13 @@ Map<String, NodeViewModelState> _buildClassNodes({
         key: key,
       );
 
-      arrayNode._setParentNode(parentNode);
-      arrayNode._setValue(
-        _buildArrayNodes(
-          object: value,
-          treeDepth: treeDepth,
-          parentNode: arrayNode,
-        ),
+      final children = _buildArrayNodes(
+        object: value,
+        treeDepth: treeDepth,
+        parentNode: arrayNode,
       );
+
+      arrayNode._setNodeHierarchy(parentNode: parentNode, children: children);
 
       map[key] = arrayNode;
     } else {
@@ -293,14 +291,13 @@ List<NodeViewModelState> _buildArrayNodes({
         treeDepth: treeDepth + 1,
       );
 
-      final subClass = _buildClassNodes(
+      final children = _buildClassNodes(
         object: arrayValue,
         treeDepth: treeDepth + 2,
         parentNode: classNode,
       );
 
-      classNode._setParentNode(parentNode);
-      classNode._setValue(subClass);
+      classNode._setNodeHierarchy(parentNode: parentNode, children: children);
 
       array.add(classNode);
     } else {
