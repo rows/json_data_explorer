@@ -562,6 +562,34 @@ void main() {
         verifyNever(listener.call);
       });
     });
+
+    test('parent node of each node is correct', () {
+      final store = DataExplorerStore();
+      store.buildNodes(json.decode(testJson));
+
+      expect(store.getNodeByKey('firstClass').parentNode, isNull);
+
+      store.assertParentNode(
+        childKey: 'firstClass.secondField',
+        parentNodeKey: 'firstClass',
+      );
+
+      store.assertParentNode(
+        childKey: 'firstClass.firstClassField',
+        parentNodeKey: 'firstClass',
+      );
+
+      store.assertParentNode(
+        childKey: 'firstClass.firstClassField',
+        parentNodeKey: 'firstClass',
+      );
+
+      store.assertParentNode(
+        childKey: 'innerClassField.thirdField',
+        parentNodeKey: 'secondClassField.innerClassField',
+        lastWhere: true,
+      );
+    });
   });
 }
 
@@ -572,5 +600,14 @@ extension on DataExplorerStore {
     }
 
     return displayNodes.firstWhere((node) => node.key == key);
+  }
+
+  void assertParentNode({
+    required String childKey,
+    required String parentNodeKey,
+    bool lastWhere = false,
+  }) {
+    expect(getNodeByKey(childKey, lastWhere: lastWhere).parentNode?.key,
+        parentNodeKey);
   }
 }
