@@ -465,11 +465,17 @@ class _HighlightedText extends StatelessWidget {
     required this.highlightedStyle,
   }) : super(key: key);
 
+  bool _ignoreHighlightedText() {
+    return highlightedText == ':' && text.lastIndexOf(':') == text.length - 1;
+  }
+
   @override
   Widget build(BuildContext context) {
     final lowerCaseText = text.toLowerCase();
     final lowerCaseQuery = highlightedText.toLowerCase();
-    if (highlightedText.isEmpty || !lowerCaseText.contains(lowerCaseQuery)) {
+    if (highlightedText.isEmpty ||
+        !lowerCaseText.contains(lowerCaseQuery) ||
+        _ignoreHighlightedText()) {
       return Text(text, style: style);
     }
 
