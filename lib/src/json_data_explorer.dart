@@ -9,7 +9,9 @@ import 'data_explorer_theme.dart';
 /// Signature for a function that creates a widget based on a
 /// [NodeViewModelState] state.
 typedef NodeBuilder = Widget Function(
-    BuildContext context, NodeViewModelState node);
+  BuildContext context,
+  NodeViewModelState node,
+);
 
 /// Signature for a function that takes a generic value and converts it to a
 /// string.
@@ -166,15 +168,17 @@ class _JsonAttribute extends StatelessWidget {
     final searchTerm =
         context.select<DataExplorerStore, String>((store) => store.searchTerm);
     final isKeySearchFocused = context.select<DataExplorerStore, bool>(
-        (store) => store.searchResults.isNotEmpty
-            ? store.focusedSearchResult.node == node &&
-                store.focusedSearchResult.key
-            : false);
+      (store) => store.searchResults.isNotEmpty
+          ? store.focusedSearchResult.node == node &&
+              store.focusedSearchResult.key
+          : false,
+    );
     final isValueSearchFocused = context.select<DataExplorerStore, bool>(
-        (store) => store.searchResults.isNotEmpty
-            ? store.focusedSearchResult.node == node &&
-                store.focusedSearchResult.value
-            : false);
+      (store) => store.searchResults.isNotEmpty
+          ? store.focusedSearchResult.node == node &&
+              store.focusedSearchResult.value
+          : false,
+    );
 
     final attributeKeyStyle =
         node.isRoot ? theme.rootKeyTextStyle : theme.propertyKeyTextStyle;
@@ -186,12 +190,12 @@ class _JsonAttribute extends StatelessWidget {
           ? SystemMouseCursors.click
           : MouseCursor.defer,
       onEnter: (event) {
-        node.highlight(true);
-        node.focus(true);
+        node.highlight();
+        node.focus();
       },
       onExit: (event) {
-        node.highlight(false);
-        node.focus(false);
+        node.highlight(isHighlighted: false);
+        node.focus(isFocused: false);
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -275,7 +279,7 @@ class _JsonAttribute extends StatelessWidget {
 
   Future _onTap(BuildContext context) async {
     if (_valueIsUrl()) {
-      return launch(node.value);
+      return launch(node.value as String);
     }
     if (node.isRoot) {
       final dataExplorerStore = Provider.of<DataExplorerStore>(
@@ -299,7 +303,7 @@ class _JsonAttribute extends StatelessWidget {
 
   bool _valueIsUrl() {
     if (node.value is String) {
-      return Uri.tryParse(node.value)?.hasAbsolutePath ?? false;
+      return Uri.tryParse(node.value as String)?.hasAbsolutePath ?? false;
     }
     return false;
   }
@@ -309,7 +313,9 @@ class _JsonAttribute extends StatelessWidget {
   /// A material [Icons.arrow_right] is displayed for collapsed nodes and
   /// [Icons.arrow_drop_down] for expanded nodes.
   static Widget _defaultCollapsableToggleBuilder(
-          BuildContext context, NodeViewModelState node) =>
+    BuildContext context,
+    NodeViewModelState node,
+  ) =>
       node.isCollapsed
           ? const Icon(
               Icons.arrow_right,
@@ -446,7 +452,6 @@ class _HighlightedText extends StatelessWidget {
       text: TextSpan(
         children: spans,
       ),
-      textAlign: TextAlign.start,
     );
   }
 }

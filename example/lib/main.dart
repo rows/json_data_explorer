@@ -31,7 +31,7 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Test Data Explorer"),
+        title: const Text('Test Data Explorer'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -117,7 +117,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
 
   @override
   void initState() {
-    loadJsonDataFrom(widget.jsonUrl);
+    _loadJsonDataFrom(widget.jsonUrl);
     super.initState();
   }
 
@@ -141,7 +141,6 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                       child: TextField(
                         controller: searchController,
                         onChanged: (term) => state.search(term),
-                        maxLines: 1,
                         decoration: const InputDecoration(
                           hintText: 'Search',
                         ),
@@ -151,13 +150,12 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                       width: 8,
                     ),
                     if (state.searchResults.isNotEmpty)
-                      Text(
-                          '${state.focusedSearchResultIndex + 1} of ${state.searchResults.length}'),
+                      Text(_searchFocusText()),
                     if (state.searchResults.isNotEmpty)
                       IconButton(
                         onPressed: () {
                           store.focusPreviousSearchResult();
-                          scrollToSearchMatch();
+                          _scrollToSearchMatch();
                         },
                         icon: const Icon(Icons.arrow_drop_up),
                       ),
@@ -165,7 +163,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                       IconButton(
                         onPressed: () {
                           store.focusNextSearchResult();
-                          scrollToSearchMatch();
+                          _scrollToSearchMatch();
                         },
                         icon: const Icon(Icons.arrow_drop_down),
                       ),
@@ -215,7 +213,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                         ),
                         child: Text(
                           node.isClass
-                              ? '{${(node.childrenCount)}}'
+                              ? '{${node.childrenCount}}'
                               : '[${node.childrenCount}]',
                           style: GoogleFonts.inconsolata(
                             fontSize: 12,
@@ -252,7 +250,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                         : const SizedBox(),
 
                     /// Creates a custom format for classes and array names.
-                    rootNameFormatter: (name) => '$name',
+                    rootNameFormatter: (dynamic name) => '$name',
 
                     /// Theme definitions of the json data explorer
                     theme: DataExplorerTheme(
@@ -309,11 +307,14 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
     );
   }
 
-  Future loadJsonDataFrom(String url) async {
+  String _searchFocusText() =>
+      '${store.focusedSearchResultIndex + 1} of ${store.searchResults.length}';
+
+  Future _loadJsonDataFrom(String url) async {
     debugPrint('Calling Json API');
     final data = await http.read(Uri.parse(url));
     debugPrint('Done!');
-    var decoded = json.decode(data);
+    final dynamic decoded = json.decode(data);
     store.buildNodes(decoded, areAllCollapsed: true);
   }
 
@@ -326,7 +327,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
     debugPrint('${node.key}: ${node.value}');
   }
 
-  void scrollToSearchMatch() {
+  void _scrollToSearchMatch() {
     final index = store.displayNodes.indexOf(store.focusedSearchResult.node);
     if (index != -1) {
       itemScrollController.scrollTo(
@@ -362,7 +363,7 @@ class _OpenJsonButton extends StatelessWidget {
         padding: padding,
         child: ElevatedButton(
           child: Text(title),
-          onPressed: () => Navigator.of(context).push(
+          onPressed: () => Navigator.of(context).push<MaterialPageRoute>(
             MaterialPageRoute(
               builder: (ctx) => DataExplorerPage(
                 jsonUrl: url,

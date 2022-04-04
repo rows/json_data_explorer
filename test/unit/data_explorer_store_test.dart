@@ -5,7 +5,7 @@ import 'package:json_data_explorer/json_data_explorer.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockCallbackFunction extends Mock {
-  call();
+  void call();
 }
 
 const testJson = '''
@@ -99,7 +99,7 @@ void main() {
       store.addListener(listener);
 
       store.buildNodes(json.decode(testJson));
-      verify(() => listener.call()).called(1);
+      verify(listener.call).called(1);
     });
 
     test('build collapsed nodes notifies listeners', () {
@@ -108,7 +108,7 @@ void main() {
       store.addListener(listener);
 
       store.buildNodes(json.decode(testJson), areAllCollapsed: true);
-      verify(() => listener.call()).called(1);
+      verify(listener.call).called(1);
     });
 
     test('collapse all nodes', () {
@@ -122,7 +122,7 @@ void main() {
       expect(store.displayNodes, hasLength(2));
       expect(store.displayNodes.elementAt(0).key, 'firstClass');
       expect(store.displayNodes.elementAt(1).key, 'secondClass');
-      verify(() => listener.call()).called(1);
+      verify(listener.call).called(1);
 
       expect(store.areAllExpanded(), isFalse);
       expect(store.areAllCollapsed(), isTrue);
@@ -139,7 +139,7 @@ void main() {
       expect(store.displayNodes, hasLength(48));
       expect(store.displayNodes.elementAt(0).key, 'firstClass');
       expect(store.displayNodes.elementAt(24).key, 'secondClass');
-      verify(() => listener.call()).called(1);
+      verify(listener.call).called(1);
 
       expect(store.areAllExpanded(), isTrue);
       expect(store.areAllCollapsed(), isFalse);
@@ -158,7 +158,7 @@ void main() {
       expect(store.displayNodes, hasLength(25));
       expect(store.displayNodes.elementAt(0).key, 'firstClass');
       expect(store.displayNodes.elementAt(1).key, 'secondClass');
-      verify(() => listener.call()).called(1);
+      verify(listener.call).called(1);
 
       expect(store.areAllExpanded(), isFalse);
       expect(store.areAllCollapsed(), isFalse);
@@ -176,7 +176,7 @@ void main() {
 
       expect(store.displayNodes, hasLength(48));
       expect(store.displayNodes.elementAt(1).isCollapsed, isFalse);
-      verifyNever(() => listener.call());
+      verifyNever(listener.call);
     });
 
     test("collapse won't do anything for already collapsed nodes", () {
@@ -191,7 +191,7 @@ void main() {
 
       expect(store.displayNodes, hasLength(2));
       expect(store.displayNodes.first.isCollapsed, isTrue);
-      verifyNever(() => listener.call());
+      verifyNever(listener.call);
     });
 
     test('expand node', () {
@@ -207,7 +207,7 @@ void main() {
       expect(store.displayNodes, hasLength(8));
       expect(store.displayNodes.elementAt(0).key, 'firstClass');
       expect(store.displayNodes.elementAt(7).key, 'secondClass');
-      verify(() => listener.call()).called(1);
+      verify(listener.call).called(1);
 
       expect(store.areAllExpanded(), isFalse);
       expect(store.areAllCollapsed(), isFalse);
@@ -229,7 +229,7 @@ void main() {
 
       expect(store.displayNodes, hasLength(8));
       expect(store.displayNodes.elementAt(1).isCollapsed, isTrue);
-      verifyNever(() => listener.call());
+      verifyNever(listener.call);
     });
 
     test("expand won't do anything for already expanded nodes", () {
@@ -244,7 +244,7 @@ void main() {
 
       expect(store.displayNodes, hasLength(48));
       expect(store.displayNodes.first.isCollapsed, isFalse);
-      verifyNever(() => listener.call());
+      verifyNever(listener.call);
     });
 
     test("expand and collapse won't change collapse state of children nodes",
@@ -280,14 +280,14 @@ void main() {
       );
       expect(store.displayNodes.elementAt(5).isCollapsed, isFalse);
 
-      verify(() => listener.call()).called(3);
+      verify(listener.call).called(3);
     });
 
     group('areAllCollapsed', () {
       test('works properly when nodes are built with areAllCollapsed as false',
           () {
         final store = DataExplorerStore();
-        store.buildNodes(json.decode(testJson), areAllCollapsed: false);
+        store.buildNodes(json.decode(testJson));
 
         expect(store.areAllCollapsed(), isFalse);
       });
@@ -319,7 +319,7 @@ void main() {
 
       test('works properly when collapsing each node individually', () {
         final store = DataExplorerStore();
-        store.buildNodes(json.decode(testJson), areAllCollapsed: false);
+        store.buildNodes(json.decode(testJson));
 
         expect(store.areAllCollapsed(), isFalse);
 
@@ -364,7 +364,7 @@ void main() {
       test('works properly when nodes are built with areAllCollapsed as false',
           () {
         final store = DataExplorerStore();
-        store.buildNodes(json.decode(testJson), areAllCollapsed: false);
+        store.buildNodes(json.decode(testJson));
 
         expect(store.areAllExpanded(), isTrue);
       });
@@ -412,8 +412,12 @@ void main() {
         expect(store.areAllExpanded(), isTrue);
 
         // collapse a node
-        store.collapseNode(store
-            .getNodeByKey('secondClassField.innerClassField', lastWhere: true));
+        store.collapseNode(
+          store.getNodeByKey(
+            'secondClassField.innerClassField',
+            lastWhere: true,
+          ),
+        );
 
         expect(store.areAllExpanded(), isFalse);
       });
@@ -429,7 +433,7 @@ void main() {
         store.search('firstField');
 
         expect(store.searchResults, hasLength(20));
-        verify(() => listener.call()).called(2);
+        verify(listener.call).called(2);
       });
 
       test('a new search clears previous results', () {
@@ -472,7 +476,7 @@ void main() {
 
         expect(store.focusedSearchResultIndex, 1);
         expect(store.focusedSearchResult, store.searchResults.elementAt(1));
-        verify(() => listener.call()).called(1);
+        verify(listener.call).called(1);
       });
 
       test('moves focus to previous result', () {
@@ -490,7 +494,7 @@ void main() {
 
         expect(store.focusedSearchResultIndex, 1);
         expect(store.focusedSearchResult, store.searchResults.elementAt(1));
-        verify(() => listener.call()).called(1);
+        verify(listener.call).called(1);
       });
 
       test('focus next result does nothing when there are no results', () {
@@ -505,7 +509,7 @@ void main() {
         store.focusNextSearchResult();
 
         expect(store.focusedSearchResultIndex, 0);
-        verifyNever(() => listener.call());
+        verifyNever(listener.call);
       });
 
       test('focus previous result does nothing when there are no results', () {
@@ -520,7 +524,7 @@ void main() {
         store.focusPreviousSearchResult();
 
         expect(store.focusedSearchResultIndex, 0);
-        verifyNever(() => listener.call());
+        verifyNever(listener.call);
       });
 
       test('focus next result does nothing when the last result is focused',
@@ -537,7 +541,7 @@ void main() {
         store.focusNextSearchResult();
 
         expect(store.focusedSearchResultIndex, 0);
-        verifyNever(() => listener.call());
+        verifyNever(listener.call);
       });
 
       test(
@@ -555,7 +559,7 @@ void main() {
         store.focusPreviousSearchResult();
 
         expect(store.focusedSearchResultIndex, 0);
-        verifyNever(() => listener.call());
+        verifyNever(listener.call);
       });
     });
   });

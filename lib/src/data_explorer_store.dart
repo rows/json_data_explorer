@@ -161,10 +161,10 @@ class NodeViewModelState extends ChangeNotifier {
   /// Sets the highlight property of this node and all of its children.
   ///
   /// [notifyListeners] is called to notify all registered listeners.
-  void highlight(bool highlight) {
-    _isHighlighted = highlight;
-    for (var children in children) {
-      children.highlight(highlight);
+  void highlight({bool isHighlighted = true}) {
+    _isHighlighted = isHighlighted;
+    for (final children in children) {
+      children.highlight(isHighlighted: isHighlighted);
     }
     notifyListeners();
   }
@@ -172,8 +172,8 @@ class NodeViewModelState extends ChangeNotifier {
   /// Sets the focus property of this node.
   ///
   /// [notifyListeners] is called to notify all registered listeners.
-  void focus(bool focus) {
-    _isFocused = focus;
+  void focus({bool isFocused = true}) {
+    _isFocused = isFocused;
     notifyListeners();
   }
 
@@ -204,7 +204,7 @@ Map<String, NodeViewModelState> buildViewModelNodes(dynamic object) {
   if (object is Map<String, dynamic>) {
     return _buildClassNodes(object: object);
   }
-  return _buildClassNodes(object: {'data': object});
+  return _buildClassNodes(object: <String, dynamic>{'data': object});
 }
 
 Map<String, NodeViewModelState> _buildClassNodes({
@@ -212,7 +212,7 @@ Map<String, NodeViewModelState> _buildClassNodes({
   int treeDepth = 0,
 }) {
   final map = <String, NodeViewModelState>{};
-  object.forEach((key, value) {
+  object.forEach((key, dynamic value) {
     if (value is Map<String, dynamic>) {
       final subClass = _buildClassNodes(
         object: value,
@@ -249,8 +249,8 @@ List<NodeViewModelState> _buildArrayNodes({
   int treeDepth = 0,
 }) {
   final array = <NodeViewModelState>[];
-  for (int i = 0; i < object.length; i++) {
-    final arrayValue = object[i];
+  for (var i = 0; i < object.length; i++) {
+    final dynamic arrayValue = object[i];
 
     if (arrayValue is Map<String, dynamic>) {
       final classNode = _buildClassNodes(
@@ -292,9 +292,11 @@ List<NodeViewModelState> _flattenClass(Map<String, NodeViewModelState> object) {
 
     if (!value.isCollapsed) {
       if (value.value is Map) {
-        flatList.addAll(_flattenClass(value.value));
+        flatList.addAll(
+          _flattenClass(value.value as Map<String, NodeViewModelState>),
+        );
       } else if (value.value is List) {
-        flatList.addAll(_flattenArray(value.value));
+        flatList.addAll(_flattenArray(value.value as List<NodeViewModelState>));
       }
     }
   });
@@ -307,7 +309,9 @@ List<NodeViewModelState> _flattenArray(List<NodeViewModelState> objects) {
     flatList.add(object);
     if (!object.isCollapsed &&
         object.value is Map<String, NodeViewModelState>) {
-      flatList.addAll(_flattenClass(object.value));
+      flatList.addAll(
+        _flattenClass(object.value as Map<String, NodeViewModelState>),
+      );
     }
   }
   return flatList;
@@ -574,7 +578,7 @@ class DataExplorerStore extends ChangeNotifier {
 
   int _visibleChildrenCount(NodeViewModelState node) {
     final children = node.children;
-    int count = 1;
+    var count = 1;
     for (final child in children) {
       count =
           child.isCollapsed ? count + 1 : count + _visibleChildrenCount(child);
