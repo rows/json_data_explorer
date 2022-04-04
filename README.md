@@ -195,7 +195,7 @@ JsonDataExplorer(
 
 `trailingBuilder` builds a trailing widget in each node. The `NodeViewModelState` 
 argument allows the widget to react to certain nodes properties. 
-To build a widget that appears only when a node ins currently focused 
+To build a widget that appears only when a node is currently focused 
 for example: 
 
 ```dart
