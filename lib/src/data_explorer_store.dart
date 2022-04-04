@@ -58,7 +58,7 @@ class NodeViewModelState extends ChangeNotifier {
   NodeViewModelState? get parentNode => _parentNode;
 
   /// Updates the parent node reference and the [value] of the current node.
-  void _setNodeHierarchy({
+  void setNodeHierarchy({
     required NodeViewModelState? parentNode,
     required dynamic children,
   }) {
@@ -247,7 +247,7 @@ Map<String, NodeViewModelState> _buildClassNodes({
         parentNode: classNode,
       );
 
-      classNode._setNodeHierarchy(parentNode: parentNode, children: children);
+      classNode.setNodeHierarchy(parentNode: parentNode, children: children);
 
       map[key] = classNode;
     } else if (value is List) {
@@ -262,7 +262,7 @@ Map<String, NodeViewModelState> _buildClassNodes({
         parentNode: arrayNode,
       );
 
-      arrayNode._setNodeHierarchy(parentNode: parentNode, children: children);
+      arrayNode.setNodeHierarchy(parentNode: parentNode, children: children);
 
       map[key] = arrayNode;
     } else {
@@ -298,7 +298,7 @@ List<NodeViewModelState> _buildArrayNodes({
         parentNode: classNode,
       );
 
-      classNode._setNodeHierarchy(parentNode: parentNode, children: children);
+      classNode.setNodeHierarchy(parentNode: parentNode, children: children);
 
       array.add(classNode);
     } else {

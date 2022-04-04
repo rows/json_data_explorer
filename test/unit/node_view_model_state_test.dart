@@ -15,6 +15,7 @@ void main() {
           treeDepth: 1,
           key: 'key',
           value: 123,
+          parentNode: null,
         );
 
         expect(viewModel.key, 'key');
@@ -25,16 +26,25 @@ void main() {
         expect(viewModel.isArray, isFalse);
         expect(viewModel.isHighlighted, isFalse);
         expect(viewModel.isCollapsed, isFalse);
+        expect(viewModel.parentNode, isNull);
       });
 
       test('a property has no children nodes', () {
+        final parentNode = NodeViewModelState.fromArray(
+          treeDepth: 1,
+          key: 'parentNodeKey',
+        );
+
         final viewModel = NodeViewModelState.fromProperty(
           treeDepth: 1,
           key: 'key',
           value: 123,
+          parentNode: parentNode,
         );
+
         expect(viewModel.childrenCount, 0);
         expect(viewModel.children, hasLength(0));
+        expect(viewModel.parentNode!.key, 'parentNodeKey');
       });
 
       test('highlight notifies listeners', () {
@@ -42,6 +52,7 @@ void main() {
           treeDepth: 1,
           key: 'key',
           value: 123,
+          parentNode: null,
         );
         final listener = MockCallbackFunction();
         viewModel.addListener(listener);
@@ -59,6 +70,7 @@ void main() {
           treeDepth: 1,
           key: 'key',
           value: 123,
+          parentNode: null,
         );
         final listener = MockCallbackFunction();
         viewModel.addListener(listener);
@@ -74,24 +86,27 @@ void main() {
 
     group('Class', () {
       test('build as a class', () {
+        final viewModel = NodeViewModelState.fromClass(
+          treeDepth: 0,
+          key: 'classKey',
+        );
+
         final classMap = {
           'propertyA': NodeViewModelState.fromProperty(
             treeDepth: 1,
             key: 'propertyA',
             value: 123,
+            parentNode: viewModel,
           ),
           'propertyB': NodeViewModelState.fromProperty(
             treeDepth: 1,
             key: 'propertyB',
             value: 'string',
+            parentNode: viewModel,
           ),
         };
 
-        final viewModel = NodeViewModelState.fromClass(
-          treeDepth: 0,
-          key: 'classKey',
-          value: classMap,
-        );
+        viewModel.setNodeHierarchy(parentNode: null, children: classMap);
 
         expect(viewModel.key, 'classKey');
         expect(viewModel.value, isA<Map<String, NodeViewModelState>>());
@@ -101,27 +116,32 @@ void main() {
         expect(viewModel.isArray, isFalse);
         expect(viewModel.isHighlighted, isFalse);
         expect(viewModel.isCollapsed, isFalse);
+
+        expect(classMap['propertyA']!.parentNode!.key, 'classKey');
       });
 
       test('children nodes', () {
+        final viewModel = NodeViewModelState.fromClass(
+          treeDepth: 0,
+          key: 'classKey',
+        );
+
         final classMap = {
           'propertyA': NodeViewModelState.fromProperty(
             treeDepth: 1,
             key: 'propertyA',
             value: 123,
+            parentNode: viewModel,
           ),
           'propertyB': NodeViewModelState.fromProperty(
             treeDepth: 1,
             key: 'propertyB',
             value: 'string',
+            parentNode: viewModel,
           ),
         };
 
-        final viewModel = NodeViewModelState.fromClass(
-          treeDepth: 0,
-          key: 'classKey',
-          value: classMap,
-        );
+        viewModel.setNodeHierarchy(parentNode: null, children: classMap);
 
         expect(viewModel.childrenCount, 2);
         expect(viewModel.children, hasLength(2));
@@ -130,32 +150,41 @@ void main() {
       });
 
       test('highlight sets highlight in all children', () {
+        final viewModel = NodeViewModelState.fromClass(
+          treeDepth: 0,
+          key: 'classKey',
+        );
+
+        final subClass = NodeViewModelState.fromClass(
+          treeDepth: 1,
+          key: 'innerClass',
+        );
+
         final classMap = {
           'property': NodeViewModelState.fromProperty(
             treeDepth: 1,
             key: 'property',
             value: 123,
+            parentNode: viewModel,
           ),
-          'innerClass': NodeViewModelState.fromClass(
-            treeDepth: 1,
-            key: 'innerClass',
-            value: {
-              'innerClassProperty': NodeViewModelState.fromProperty(
-                treeDepth: 2,
-                key: 'innerClassProperty',
-                value: 123,
-              ),
-            },
-          ),
+          'innerClass': subClass,
         };
 
-        final viewModel = NodeViewModelState.fromClass(
-          treeDepth: 0,
-          key: 'classKey',
-          value: classMap,
+        subClass.setNodeHierarchy(
+          parentNode: viewModel,
+          children: {
+            'innerClassProperty': NodeViewModelState.fromProperty(
+              treeDepth: 2,
+              key: 'innerClassProperty',
+              value: 123,
+              parentNode: classMap['innerClass'],
+            ),
+          },
         );
 
+        viewModel.setNodeHierarchy(parentNode: null, children: classMap);
         viewModel.highlight();
+
         expect(viewModel.isHighlighted, isTrue);
         expect(classMap['property']!.isHighlighted, isTrue);
         expect(classMap['innerClass']!.isHighlighted, isTrue);
@@ -177,24 +206,27 @@ void main() {
 
     group('Array', () {
       test('build as an array', () {
+        final viewModel = NodeViewModelState.fromArray(
+          treeDepth: 0,
+          key: 'arrayKey',
+        );
+
         final arrayValues = [
           NodeViewModelState.fromProperty(
             treeDepth: 1,
             key: '0',
             value: 123,
+            parentNode: viewModel,
           ),
           NodeViewModelState.fromProperty(
             treeDepth: 1,
             key: '1',
             value: 'string',
+            parentNode: viewModel,
           ),
         ];
 
-        final viewModel = NodeViewModelState.fromArray(
-          treeDepth: 0,
-          key: 'arrayKey',
-          value: arrayValues,
-        );
+        viewModel.setNodeHierarchy(parentNode: null, children: arrayValues);
 
         expect(viewModel.key, 'arrayKey');
         expect(viewModel.value, isA<List<NodeViewModelState>>());
@@ -207,24 +239,27 @@ void main() {
       });
 
       test('children nodes', () {
+        final viewModel = NodeViewModelState.fromArray(
+          treeDepth: 0,
+          key: 'arrayKey',
+        );
+
         final arrayValues = [
           NodeViewModelState.fromProperty(
             treeDepth: 1,
             key: '0',
             value: 123,
+            parentNode: viewModel,
           ),
           NodeViewModelState.fromProperty(
             treeDepth: 1,
             key: '1',
             value: 'string',
+            parentNode: viewModel,
           ),
         ];
 
-        final viewModel = NodeViewModelState.fromArray(
-          treeDepth: 0,
-          key: 'arrayKey',
-          value: arrayValues,
-        );
+        viewModel.setNodeHierarchy(parentNode: null, children: arrayValues);
 
         expect(viewModel.childrenCount, 2);
         expect(viewModel.children, hasLength(2));
@@ -233,26 +268,33 @@ void main() {
       });
 
       test('highlight sets highlight in all children', () {
-        final arrayValues = [
-          NodeViewModelState.fromClass(
-            treeDepth: 1,
-            key: 'class',
-            value: {
-              'classProperty': NodeViewModelState.fromProperty(
-                treeDepth: 2,
-                key: 'classProperty',
-                value: 123,
-              ),
-            },
-          ),
-        ];
         final viewModel = NodeViewModelState.fromArray(
           treeDepth: 0,
           key: 'arrayKey',
-          value: arrayValues,
         );
 
+        final subClass = NodeViewModelState.fromClass(
+          treeDepth: 1,
+          key: 'class',
+        );
+
+        subClass.setNodeHierarchy(
+          parentNode: viewModel,
+          children: {
+            'classProperty': NodeViewModelState.fromProperty(
+              treeDepth: 2,
+              key: 'classProperty',
+              value: 123,
+              parentNode: subClass,
+            ),
+          },
+        );
+
+        final arrayValues = [subClass];
+
+        viewModel.setNodeHierarchy(parentNode: null, children: arrayValues);
         viewModel.highlight();
+
         expect(viewModel.isHighlighted, isTrue);
         expect(arrayValues[0].isHighlighted, isTrue);
         expect(arrayValues[0].value['classProperty']!.isHighlighted, isTrue);
