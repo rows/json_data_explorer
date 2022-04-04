@@ -382,8 +382,10 @@ class _RootNodeWidget extends StatelessWidget {
     final attributeKeyStyle =
         node.isRoot ? theme.rootKeyTextStyle : theme.propertyKeyTextStyle;
 
+    final text = _keyName();
+
     if (!showHighlightedText) {
-      return Text(_keyName(), style: attributeKeyStyle);
+      return Text(text, style: attributeKeyStyle);
     }
 
     final isKeySearchFocused = context.select<DataExplorerStore, bool>(
@@ -393,7 +395,7 @@ class _RootNodeWidget extends StatelessWidget {
             : false);
 
     return _HighlightedText(
-      text: _keyName(),
+      text: text,
       highlightedText: searchTerm,
       style: attributeKeyStyle,
       highlightedStyle: isKeySearchFocused
@@ -431,11 +433,10 @@ class _PropertyNodeWidget extends StatelessWidget {
           )
         : theme.valueTextStyle;
 
+    final text = valueFormatter?.call(node.value) ?? node.value.toString();
+
     if (!showHighlightedText) {
-      return Text(
-        valueFormatter?.call(node.value) ?? node.value.toString(),
-        style: style,
-      );
+      return Text(text, style: style);
     }
 
     final isValueSearchFocused = context.select<DataExplorerStore, bool>(
@@ -445,7 +446,7 @@ class _PropertyNodeWidget extends StatelessWidget {
             : false);
 
     return _HighlightedText(
-      text: valueFormatter?.call(node.value) ?? node.value.toString(),
+      text: text,
       highlightedText: searchTerm,
       style: style,
       highlightedStyle: isValueSearchFocused
