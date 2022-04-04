@@ -15,10 +15,10 @@ A highly customizable widget to render and interact with JSON objects.
 
 <!-- TODO: change branch links /docs -->
 <p>
-  <img src="https://github.com/rows/json-data-explorer/blob/doc/doc/interaction.gif?raw=true"
+  <img src="https://github.com/rows/json-data-explorer/blob/main/doc/interaction.gif?raw=true"
    alt="An animated image of the json widget interaction" height="400"/>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="https://github.com/rows/json-data-explorer/blob/doc/doc/search.gif?raw=true"
+  <img src="https://github.com/rows/json-data-explorer/blob/main/doc/search.gif?raw=true"
    alt="An animated image of the search capabilities" height="400"/>
 </p>
 
