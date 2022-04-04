@@ -214,7 +214,7 @@ JsonDataExplorer(
 Refer to `DataExplorerTheme` to change the looks of search the results.
 
 
-The focused result can be change by calling the `focusPreviousSearchResult` and `focusNextSearchResult` methods. 
+The focused result can be changed by calling the `focusPreviousSearchResult` and `focusNextSearchResult` methods. 
 
 Here is an example of a simple search bar, you can check a full example
 in the `example` folder.
