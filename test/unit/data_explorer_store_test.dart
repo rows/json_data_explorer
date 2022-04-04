@@ -607,7 +607,9 @@ extension on DataExplorerStore {
     required String parentNodeKey,
     bool lastWhere = false,
   }) {
-    expect(getNodeByKey(childKey, lastWhere: lastWhere).parentNode?.key,
-        parentNodeKey);
+    expect(
+      getNodeByKey(childKey, lastWhere: lastWhere).parentNode?.key,
+      parentNodeKey,
+    );
   }
 }

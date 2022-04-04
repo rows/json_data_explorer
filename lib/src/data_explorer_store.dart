@@ -57,6 +57,7 @@ class NodeViewModelState extends ChangeNotifier {
 
   NodeViewModelState? get parentNode => _parentNode;
 
+  /// Updates the parent node reference and the [value] of the current node.
   void _setNodeHierarchy({
     required NodeViewModelState? parentNode,
     required dynamic children,
