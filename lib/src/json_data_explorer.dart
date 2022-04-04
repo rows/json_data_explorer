@@ -221,21 +221,6 @@ class _JsonAttribute extends StatelessWidget {
     final valueIsUrl = _valueIsUrl();
     final searchTerm =
         context.select<DataExplorerStore, String>((store) => store.searchTerm);
-    final isKeySearchFocused = context.select<DataExplorerStore, bool>(
-      (store) => store.searchResults.isNotEmpty
-          ? store.focusedSearchResult.node == node &&
-              store.focusedSearchResult.key
-          : false,
-    );
-    final isValueSearchFocused = context.select<DataExplorerStore, bool>(
-      (store) => store.searchResults.isNotEmpty
-          ? store.focusedSearchResult.node == node &&
-              store.focusedSearchResult.value
-          : false,
-    );
-
-    final attributeKeyStyle =
-        node.isRoot ? theme.rootKeyTextStyle : theme.propertyKeyTextStyle;
 
     final spacing = itemSpacing / 2;
 
@@ -284,13 +269,12 @@ class _JsonAttribute extends StatelessWidget {
                       ),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: spacing),
-                      child: _HighlightedText(
-                        text: _keyName(),
-                        highlightedText: searchTerm,
-                        style: attributeKeyStyle,
-                        highlightedStyle: isKeySearchFocused
-                            ? theme.focusedKeySearchNodeHighlightTextStyle
-                            : theme.keySearchHighlightTextStyle,
+                      child: _RootNodeWidget(
+                        node: node,
+                        rootNameFormatter: rootNameFormatter,
+                        propertyNameFormatter: propertyNameFormatter,
+                        searchTerm: searchTerm,
+                        theme: theme,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -301,18 +285,12 @@ class _JsonAttribute extends StatelessWidget {
                       Expanded(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: spacing),
-                          child: _HighlightedText(
-                            text: valueFormatter?.call(node.value) ??
-                                node.value.toString(),
-                            highlightedText: searchTerm,
-                            style: valueIsUrl
-                                ? theme.valueTextStyle.copyWith(
-                                    decoration: TextDecoration.underline,
-                                  )
-                                : theme.valueTextStyle,
-                            highlightedStyle: isValueSearchFocused
-                                ? theme.focusedValueSearchHighlightTextStyle
-                                : theme.valueSearchHighlightTextStyle,
+                          child: _PropertyNodeWidget(
+                            node: node,
+                            searchTerm: searchTerm,
+                            valueFormatter: valueFormatter,
+                            valueIsUrl: valueIsUrl,
+                            theme: theme,
                           ),
                         ),
                       ),
@@ -348,13 +326,6 @@ class _JsonAttribute extends StatelessWidget {
     }
   }
 
-  String _keyName() {
-    if (node.isRoot) {
-      return rootNameFormatter?.call(node.key) ?? '${node.key}:';
-    }
-    return propertyNameFormatter?.call(node.key) ?? '${node.key}:';
-  }
-
   bool _valueIsUrl() {
     if (node.value is String) {
       return Uri.tryParse(node.value as String)?.hasAbsolutePath ?? false;
@@ -377,6 +348,111 @@ class _JsonAttribute extends StatelessWidget {
           : const Icon(
               Icons.arrow_drop_down,
             );
+}
+
+/// A [Widget] that renders a node that can be a class or a list.
+class _RootNodeWidget extends StatelessWidget {
+  final NodeViewModelState node;
+  final String searchTerm;
+  final Formatter? rootNameFormatter;
+  final Formatter? propertyNameFormatter;
+  final DataExplorerTheme theme;
+
+  const _RootNodeWidget({
+    Key? key,
+    required this.node,
+    required this.searchTerm,
+    required this.rootNameFormatter,
+    required this.propertyNameFormatter,
+    required this.theme,
+  }) : super(key: key);
+
+  String _keyName() {
+    if (node.isRoot) {
+      return rootNameFormatter?.call(node.key) ?? '${node.key}:';
+    }
+    return propertyNameFormatter?.call(node.key) ?? '${node.key}:';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final showHighlightedText = context.select<DataExplorerStore, bool>(
+        (store) => store.searchResults.isNotEmpty);
+
+    final attributeKeyStyle =
+        node.isRoot ? theme.rootKeyTextStyle : theme.propertyKeyTextStyle;
+
+    if (!showHighlightedText) {
+      return Text(_keyName(), style: attributeKeyStyle);
+    }
+
+    final isKeySearchFocused = context.select<DataExplorerStore, bool>(
+        (store) => store.searchResults.isNotEmpty
+            ? store.focusedSearchResult.node == node &&
+                store.focusedSearchResult.key
+            : false);
+
+    return _HighlightedText(
+      text: _keyName(),
+      highlightedText: searchTerm,
+      style: attributeKeyStyle,
+      highlightedStyle: isKeySearchFocused
+          ? theme.focusedKeySearchNodeHighlightTextStyle
+          : theme.keySearchHighlightTextStyle,
+    );
+  }
+}
+
+/// A [Widget] that renders a leaf node.
+class _PropertyNodeWidget extends StatelessWidget {
+  final NodeViewModelState node;
+  final String searchTerm;
+  final Formatter? valueFormatter;
+  final bool valueIsUrl;
+  final DataExplorerTheme theme;
+
+  const _PropertyNodeWidget({
+    Key? key,
+    required this.node,
+    required this.searchTerm,
+    required this.valueFormatter,
+    required this.valueIsUrl,
+    required this.theme,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final showHighlightedText = context.select<DataExplorerStore, bool>(
+        (store) => store.searchResults.isNotEmpty);
+
+    final style = valueIsUrl
+        ? theme.valueTextStyle.copyWith(
+            decoration: TextDecoration.underline,
+          )
+        : theme.valueTextStyle;
+
+    if (!showHighlightedText) {
+      return Text(
+        valueFormatter?.call(node.value) ?? node.value.toString(),
+        style: style,
+      );
+    }
+
+    final isValueSearchFocused = context.select<DataExplorerStore, bool>(
+        (store) => store.searchResults.isNotEmpty
+            ? store.focusedSearchResult.node == node &&
+                store.focusedSearchResult.value
+            : false);
+
+    return _HighlightedText(
+      text: valueFormatter?.call(node.value) ?? node.value.toString(),
+      highlightedText: searchTerm,
+      style: style,
+      highlightedStyle: isValueSearchFocused
+          ? theme.focusedValueSearchHighlightTextStyle
+          : theme.valueSearchHighlightTextStyle,
+    );
+  }
 }
 
 /// Creates the indentation lines and padding of each node depending on its
@@ -465,17 +541,11 @@ class _HighlightedText extends StatelessWidget {
     required this.highlightedStyle,
   }) : super(key: key);
 
-  bool _ignoreHighlightedText() {
-    return highlightedText == ':' && text.lastIndexOf(':') == text.length - 1;
-  }
-
   @override
   Widget build(BuildContext context) {
     final lowerCaseText = text.toLowerCase();
     final lowerCaseQuery = highlightedText.toLowerCase();
-    if (highlightedText.isEmpty ||
-        !lowerCaseText.contains(lowerCaseQuery) ||
-        _ignoreHighlightedText()) {
+    if (highlightedText.isEmpty || !lowerCaseText.contains(lowerCaseQuery)) {
       return Text(text, style: style);
     }
 
