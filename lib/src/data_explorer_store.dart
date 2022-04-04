@@ -50,8 +50,6 @@ class NodeViewModelState extends ChangeNotifier {
 
   NodeViewModelState? _parentNode;
 
-  String? get parentNodeKey => _parentNode?.key;
-
   /// This attribute value, it may be one of the following:
   /// [num], [String], [bool], [Null], [Map<String, NodeViewModelState>] or
   /// [List<NodeViewModelState>].
@@ -60,6 +58,8 @@ class NodeViewModelState extends ChangeNotifier {
   void _setParentNode(NodeViewModelState? parentNode) {
     _parentNode = parentNode;
   }
+
+  NodeViewModelState? get parentNode => _parentNode;
 
   void _setValue(dynamic value) {
     this.value = value;
@@ -86,7 +86,9 @@ class NodeViewModelState extends ChangeNotifier {
     this.isClass = false,
     this.isArray = false,
     bool isCollapsed = false,
-  }) : _isCollapsed = isCollapsed;
+    NodeViewModelState? parentNode,
+  })  : _isCollapsed = isCollapsed,
+        _parentNode = parentNode;
 
   /// Build a [NodeViewModelState] as a property.
   /// A property is a single attribute in the json, can be of a type
@@ -104,7 +106,8 @@ class NodeViewModelState extends ChangeNotifier {
         key: key,
         value: value,
         treeDepth: treeDepth,
-      ).._setParentNode(parentNode);
+        parentNode: parentNode,
+      );
 
   /// Build a [NodeViewModelState] as a class.
   /// A class is a JSON node containing a whole class, a class can have
@@ -253,6 +256,7 @@ Map<String, NodeViewModelState> _buildClassNodes({
         key: key,
       );
 
+      arrayNode._setParentNode(parentNode);
       arrayNode._setValue(
         _buildArrayNodes(
           object: value,
@@ -260,8 +264,6 @@ Map<String, NodeViewModelState> _buildClassNodes({
           parentNode: arrayNode,
         ),
       );
-
-      arrayNode._setParentNode(parentNode);
 
       map[key] = arrayNode;
     } else {
