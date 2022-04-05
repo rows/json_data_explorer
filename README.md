@@ -29,7 +29,6 @@ A highly customizable widget to render and interact with JSON objects.
 - Configurable theme and interactions.
 - Configurable data display format.
 - Indentation guidelines.
-- Interaction with URL values.
 
 ## Usage
 
@@ -158,6 +157,54 @@ JsonDataExplorer(
 ```
 
 Now all property keys are displayed as `key ->`.
+
+
+#### Changing property style based on value:
+
+Property values `style` and `onTap` can be changed dynamically by using 
+the `valueStyleBuilder` parameter. It expects a fuction that receives
+the property `dynamic value` and the current `style`, and returns 
+a `PropertyStyle`. 
+
+An exemple is adding interaction to values that contains links:
+
+```dart
+JsonDataExplorer(
+  nodes: state.displayNodes,
+  valueStyleBuilder: (value, style) {
+    final isUrl = _valueIsUrl(value);
+    return PropertyStyle(
+      style: isUrl
+          ? style.copyWith(
+              decoration: TextDecoration.underline,
+            )
+          : style,
+      onTap: isUrl ? () => _launchUrl(value) : null,
+    );
+  },
+)
+```
+
+Or, folowing the same priciple, change how the value looks for specific 
+value types: 
+
+```dart
+JsonDataExplorer(
+  nodes: state.displayNodes,
+  valueStyleBuilder: (value, style) {
+    if (value is num) {
+      return PropertyStyle(
+        style: style.copyWith(
+          color: Colors.blue,
+        ),
+      );
+    } 
+    return PropertyStyle(
+      style: style,
+    );
+  },
+)
+```
 
 #### Custom widget components:
 

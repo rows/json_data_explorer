@@ -24,6 +24,7 @@ typedef Formatter = String Function(dynamic value);
 /// * [PropertyStyle]
 typedef StyleBuilder = PropertyStyle Function(dynamic value, TextStyle style);
 
+/// Holds information about a property value style and interaction.
 class PropertyStyle {
   final TextStyle style;
   final VoidCallback? onTap;
@@ -124,10 +125,10 @@ class JsonDataExplorer extends StatelessWidget {
   /// method.
   final Formatter? valueFormatter;
 
-  /// Customizes how property values are formatted as string.
+  /// Customizes a property style and interaction based on its value.
   ///
-  /// By default the value is converted to a string by calling the .toString()
-  /// method.
+  /// See also:
+  /// * [StyleBuilder]
   final StyleBuilder? valueStyleBuilder;
 
   /// Sets the spacing between each list item.
@@ -219,6 +220,10 @@ class _JsonAttribute extends StatelessWidget {
   /// method.
   final Formatter? valueFormatter;
 
+  /// Customizes a property style and interaction based on its value.
+  ///
+  /// See also:
+  /// * [StyleBuilder]
   final StyleBuilder? valueStyleBuilder;
 
   /// Sets the spacing between each list item.
