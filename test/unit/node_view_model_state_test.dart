@@ -1,4 +1,6 @@
 // ignore_for_file: avoid_dynamic_calls
+import 'dart:math';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:json_data_explorer/json_data_explorer.dart';
 import 'package:mocktail/mocktail.dart';
@@ -303,6 +305,70 @@ void main() {
         expect(viewModel.isHighlighted, isFalse);
         expect(arrayValues[0].isHighlighted, isFalse);
         expect(arrayValues[0].value['classProperty']!.isHighlighted, isFalse);
+      });
+    });
+
+    group('parent nodes', () {
+      test('work properly', () {
+        final firstClass = NodeViewModelState.fromClass(
+          treeDepth: 0,
+          key: 'firstClass',
+        );
+
+        final firstClassFirstField = NodeViewModelState.fromClass(
+          treeDepth: 1,
+          key: 'firstClass.firstField',
+        );
+
+        final firstClassFirstClassField = NodeViewModelState.fromClass(
+          treeDepth: 2,
+          key: 'firstClass.firstClassField',
+        );
+
+        final firstClassFirstClassFieldArray = NodeViewModelState.fromArray(
+          treeDepth: 3,
+          key: 'firstClass.firstClassField.array',
+        );
+
+        final firstClassFirstClassFieldArrayField =
+            NodeViewModelState.fromProperty(
+          treeDepth: 4,
+          key: 'key',
+          value: 'value',
+          parent: firstClassFirstClassFieldArray,
+        );
+
+        firstClass.setNodeHierarchy(
+          parent: null,
+          children: firstClassFirstField,
+        );
+
+        firstClassFirstField.setNodeHierarchy(
+          parent: firstClass,
+          children: firstClassFirstClassField,
+        );
+
+        firstClassFirstClassField.setNodeHierarchy(
+          parent: firstClassFirstField,
+          children: firstClassFirstClassFieldArray,
+        );
+
+        firstClassFirstClassFieldArray.setNodeHierarchy(
+          parent: firstClassFirstClassField,
+          children: firstClassFirstClassFieldArrayField,
+        );
+
+        expect(firstClass.parent, isNull);
+        expect(firstClassFirstField.parent, firstClass);
+        expect(firstClassFirstClassField.parent, firstClassFirstField);
+        expect(
+          firstClassFirstClassFieldArray.parent,
+          firstClassFirstClassField,
+        );
+        expect(
+          firstClassFirstClassFieldArrayField.parent,
+          firstClassFirstClassFieldArray,
+        );
       });
     });
   });
