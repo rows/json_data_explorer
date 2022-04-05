@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:json_data_explorer/json_data_explorer.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(const MyApp());
 
@@ -255,6 +256,20 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                     /// Creates a custom format for classes and array names.
                     rootNameFormatter: (dynamic name) => '$name',
 
+                    /// Dynamically changes the property value style and
+                    /// interaction when an URL is detected.
+                    valueStyleBuilder: (dynamic value, style) {
+                      final isUrl = _valueIsUrl(value);
+                      return PropertyStyle(
+                        style: isUrl
+                            ? style.copyWith(
+                                decoration: TextDecoration.underline,
+                              )
+                            : style,
+                        onTap: isUrl ? () => _launchUrl(value as String) : null,
+                      );
+                    },
+
                     /// Theme definitions of the json data explorer
                     theme: DataExplorerTheme(
                       rootKeyTextStyle: GoogleFonts.inconsolata(
@@ -339,6 +354,17 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
         curve: Curves.easeInOutCubic,
       );
     }
+  }
+
+  bool _valueIsUrl(dynamic value) {
+    if (value is String) {
+      return Uri.tryParse(value)?.hasAbsolutePath ?? false;
+    }
+    return false;
+  }
+
+  Future _launchUrl(String url) {
+    return launch(url);
   }
 
   @override

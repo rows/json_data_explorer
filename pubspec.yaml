@@ -13,7 +13,6 @@ dependencies:
     sdk: flutter
   scrollable_positioned_list: ^0.2.3
   provider: ^6.0.2
-  url_launcher: ^6.0.20
 
 dev_dependencies:
   flutter_test:
