@@ -1,9 +1,10 @@
+// ignore_for_file: avoid_dynamic_calls
 import 'package:flutter_test/flutter_test.dart';
 import 'package:json_data_explorer/json_data_explorer.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockCallbackFunction extends Mock {
-  call();
+  void call();
 }
 
 void main() {
@@ -45,12 +46,12 @@ void main() {
         final listener = MockCallbackFunction();
         viewModel.addListener(listener);
 
-        viewModel.highlight(true);
+        viewModel.highlight();
         expect(viewModel.isHighlighted, isTrue);
 
-        viewModel.highlight(false);
+        viewModel.highlight(isHighlighted: false);
         expect(viewModel.isHighlighted, isFalse);
-        verify(() => listener.call()).called(2);
+        verify(listener.call).called(2);
       });
 
       test('collapse notifies listeners', () {
@@ -67,7 +68,7 @@ void main() {
 
         viewModel.expand();
         expect(viewModel.isCollapsed, isFalse);
-        verify(() => listener.call()).called(2);
+        verify(listener.call).called(2);
       });
     });
 
@@ -154,7 +155,7 @@ void main() {
           value: classMap,
         );
 
-        viewModel.highlight(true);
+        viewModel.highlight();
         expect(viewModel.isHighlighted, isTrue);
         expect(classMap['property']!.isHighlighted, isTrue);
         expect(classMap['innerClass']!.isHighlighted, isTrue);
@@ -163,7 +164,7 @@ void main() {
           isTrue,
         );
 
-        viewModel.highlight(false);
+        viewModel.highlight(isHighlighted: false);
         expect(viewModel.isHighlighted, isFalse);
         expect(classMap['property']!.isHighlighted, isFalse);
         expect(classMap['innerClass']!.isHighlighted, isFalse);
@@ -251,12 +252,12 @@ void main() {
           value: arrayValues,
         );
 
-        viewModel.highlight(true);
+        viewModel.highlight();
         expect(viewModel.isHighlighted, isTrue);
         expect(arrayValues[0].isHighlighted, isTrue);
         expect(arrayValues[0].value['classProperty']!.isHighlighted, isTrue);
 
-        viewModel.highlight(false);
+        viewModel.highlight(isHighlighted: false);
         expect(viewModel.isHighlighted, isFalse);
         expect(arrayValues[0].isHighlighted, isFalse);
         expect(arrayValues[0].value['classProperty']!.isHighlighted, isFalse);

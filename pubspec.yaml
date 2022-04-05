@@ -18,5 +18,5 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^1.0.0
+  rows_lint: 0.1.0
   mocktail: ^0.3.0
