@@ -377,7 +377,8 @@ class _RootNodeWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final showHighlightedText = context.select<DataExplorerStore, bool>(
-        (store) => store.searchResults.isNotEmpty);
+      (store) => store.searchResults.isNotEmpty,
+    );
 
     final attributeKeyStyle =
         node.isRoot ? theme.rootKeyTextStyle : theme.propertyKeyTextStyle;
@@ -389,10 +390,11 @@ class _RootNodeWidget extends StatelessWidget {
     }
 
     final isKeySearchFocused = context.select<DataExplorerStore, bool>(
-        (store) => store.searchResults.isNotEmpty
-            ? store.focusedSearchResult.node == node &&
-                store.focusedSearchResult.key
-            : false);
+      (store) => store.searchResults.isNotEmpty
+          ? store.focusedSearchResult.node == node &&
+              store.focusedSearchResult.key
+          : false,
+    );
 
     return _HighlightedText(
       text: text,
@@ -425,7 +427,8 @@ class _PropertyNodeWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final showHighlightedText = context.select<DataExplorerStore, bool>(
-        (store) => store.searchResults.isNotEmpty);
+      (store) => store.searchResults.isNotEmpty,
+    );
 
     final style = valueIsUrl
         ? theme.valueTextStyle.copyWith(
@@ -440,10 +443,11 @@ class _PropertyNodeWidget extends StatelessWidget {
     }
 
     final isValueSearchFocused = context.select<DataExplorerStore, bool>(
-        (store) => store.searchResults.isNotEmpty
-            ? store.focusedSearchResult.node == node &&
-                store.focusedSearchResult.value
-            : false);
+      (store) => store.searchResults.isNotEmpty
+          ? store.focusedSearchResult.node == node &&
+              store.focusedSearchResult.value
+          : false,
+    );
 
     return _HighlightedText(
       text: text,
