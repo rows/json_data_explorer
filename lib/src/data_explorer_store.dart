@@ -58,6 +58,7 @@ class NodeViewModelState extends ChangeNotifier {
   NodeViewModelState? get parentNode => _parentNode;
 
   /// Updates the parent node reference and the [value] of the current node.
+  @visibleForTesting
   void setNodeHierarchy({
     required NodeViewModelState? parentNode,
     required dynamic children,
@@ -66,8 +67,8 @@ class NodeViewModelState extends ChangeNotifier {
     value = children;
   }
 
-  int get childrenCount {
-    final currentValue = value;
+  late int childrenCount = () {
+    final dynamic currentValue = value;
 
     if (currentValue is Map<String, dynamic>) {
       return currentValue.keys.length;
@@ -78,7 +79,7 @@ class NodeViewModelState extends ChangeNotifier {
     }
 
     return 0;
-  }
+  }();
 
   NodeViewModelState._({
     required this.treeDepth,
