@@ -62,7 +62,7 @@ class DataExplorerTheme {
             (propertyKeyTextStyle ??
                 DataExplorerTheme.defaultTheme.rootKeyTextStyle),
         propertyKeyTextStyle = propertyKeyTextStyle ??
-            DataExplorerTheme.defaultTheme.rootKeyTextStyle,
+            DataExplorerTheme.defaultTheme.propertyKeyTextStyle,
         keySearchHighlightTextStyle = keySearchHighlightTextStyle ??
             DataExplorerTheme.defaultTheme.keySearchHighlightTextStyle,
         valueTextStyle =

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:json_data_explorer/json_data_explorer.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +10,7 @@ import 'test_data.dart';
 
 void main() {
   testGoldens('Weather types should look correct', (tester) async {
-    final jsonObject = json.decode(nobelPrizesJson);
+    final dynamic jsonObject = json.decode(nobelPrizesJson);
 
     final widget = ChangeNotifierProvider(
       create: (context) => DataExplorerStore()..buildNodes(jsonObject),
@@ -68,35 +67,35 @@ void main() {
             ),
           ),
         ),
-      )
-      ..addScenario(
-          name: 'highlight entire node on hover',
-          widget: ChangeNotifierProvider(
-            create: (context) => DataExplorerStore()..buildNodes(jsonObject),
-            child: Consumer<DataExplorerStore>(
-              builder: (context, state, child) => JsonDataExplorer(
-                nodes: state.displayNodes,
-              ),
-            ),
-          ),
-          onCreate: (widgetKey) async {
-            final gesture = await tester.createGesture(
-              kind: PointerDeviceKind.mouse,
-            );
-            await gesture.addPointer(location: Offset.zero);
-            addTearDown(gesture.removePointer);
-            await tester.pump();
-
-            final finder = find.descendant(
-              of: find.byKey(widgetKey),
-              matching: find.text(
-                'laureates:',
-                findRichText: true,
-              ),
-            );
-            await gesture.moveTo(tester.getCenter(finder.first));
-            await tester.pumpAndSettle();
-          });
+      );
+    // ..addScenario(
+    //     name: 'highlight entire node on hover',
+    //     widget: ChangeNotifierProvider(
+    //       create: (context) => DataExplorerStore()..buildNodes(jsonObject),
+    //       child: Consumer<DataExplorerStore>(
+    //         builder: (context, state, child) => JsonDataExplorer(
+    //           nodes: state.displayNodes,
+    //         ),
+    //       ),
+    //     ),
+    //     onCreate: (widgetKey) async {
+    //       final gesture = await tester.createGesture(
+    //         kind: PointerDeviceKind.mouse,
+    //       );
+    //       await gesture.addPointer(location: Offset.zero);
+    //       addTearDown(gesture.removePointer);
+    //       await tester.pump();
+    //
+    //       final finder = find.descendant(
+    //         of: find.byKey(widgetKey),
+    //         matching: find.text(
+    //           'laureates:',
+    //           findRichText: true,
+    //         ),
+    //       );
+    //       await gesture.moveTo(tester.getCenter(finder.first));
+    //       await tester.pumpAndSettle();
+    //     });
 
     await tester.pumpDeviceBuilder(builder);
     await screenMatchesGolden(tester, 'multi_size_test');
