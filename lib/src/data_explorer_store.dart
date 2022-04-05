@@ -49,13 +49,12 @@ class NodeViewModelState extends ChangeNotifier {
   bool _isCollapsed;
 
   NodeViewModelState? _parent;
+  NodeViewModelState? get parent => _parent;
 
   /// This attribute value, it may be one of the following:
   /// [num], [String], [bool], [Null], [Map<String, NodeViewModelState>] or
   /// [List<NodeViewModelState>].
   dynamic value;
-
-  NodeViewModelState? get parent => _parent;
 
   /// Updates the parent node reference and the [value] of the current node.
   @visibleForTesting
