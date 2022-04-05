@@ -162,7 +162,7 @@ Now all property keys are displayed as `key ->`.
 #### Changing property style based on value:
 
 Property values `style` and `onTap` can be changed dynamically by using 
-the `valueStyleBuilder` parameter. It expects a fuction that receives
+the `valueStyleBuilder` parameter. It expects a function that receives
 the property `dynamic value` and the current `style`, and returns 
 a `PropertyStyle`. 
 
