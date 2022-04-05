@@ -567,26 +567,26 @@ void main() {
       final store = DataExplorerStore();
       store.buildNodes(json.decode(testJson));
 
-      expect(store.getNodeByKey('firstClass').parentNode, isNull);
+      expect(store.getNodeByKey('firstClass').parent, isNull);
 
-      store.assertParentNode(
+      store.assertParent(
         childKey: 'firstClass.secondField',
-        parentNodeKey: 'firstClass',
+        parentKey: 'firstClass',
       );
 
-      store.assertParentNode(
+      store.assertParent(
         childKey: 'firstClass.firstClassField',
-        parentNodeKey: 'firstClass',
+        parentKey: 'firstClass',
       );
 
-      store.assertParentNode(
+      store.assertParent(
         childKey: 'firstClass.firstClassField',
-        parentNodeKey: 'firstClass',
+        parentKey: 'firstClass',
       );
 
-      store.assertParentNode(
+      store.assertParent(
         childKey: 'innerClassField.thirdField',
-        parentNodeKey: 'secondClassField.innerClassField',
+        parentKey: 'secondClassField.innerClassField',
         lastWhere: true,
       );
     });
@@ -602,14 +602,14 @@ extension on DataExplorerStore {
     return displayNodes.firstWhere((node) => node.key == key);
   }
 
-  void assertParentNode({
+  void assertParent({
     required String childKey,
-    required String parentNodeKey,
+    required String parentKey,
     bool lastWhere = false,
   }) {
     expect(
-      getNodeByKey(childKey, lastWhere: lastWhere).parentNode?.key,
-      parentNodeKey,
+      getNodeByKey(childKey, lastWhere: lastWhere).parent?.key,
+      parentKey,
     );
   }
 }

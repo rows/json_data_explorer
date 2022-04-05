@@ -48,22 +48,22 @@ class NodeViewModelState extends ChangeNotifier {
   bool _isFocused = false;
   bool _isCollapsed;
 
-  NodeViewModelState? _parentNode;
+  NodeViewModelState? _parent;
 
   /// This attribute value, it may be one of the following:
   /// [num], [String], [bool], [Null], [Map<String, NodeViewModelState>] or
   /// [List<NodeViewModelState>].
   dynamic value;
 
-  NodeViewModelState? get parentNode => _parentNode;
+  NodeViewModelState? get parent => _parent;
 
   /// Updates the parent node reference and the [value] of the current node.
   @visibleForTesting
   void setNodeHierarchy({
-    required NodeViewModelState? parentNode,
+    required NodeViewModelState? parent,
     required dynamic children,
   }) {
-    _parentNode = parentNode;
+    _parent = parent;
     value = children;
   }
 
@@ -88,9 +88,9 @@ class NodeViewModelState extends ChangeNotifier {
     this.isClass = false,
     this.isArray = false,
     bool isCollapsed = false,
-    NodeViewModelState? parentNode,
+    NodeViewModelState? parent,
   })  : _isCollapsed = isCollapsed,
-        _parentNode = parentNode;
+        _parent = parent;
 
   /// Build a [NodeViewModelState] as a property.
   /// A property is a single attribute in the json, can be of a type
@@ -102,13 +102,13 @@ class NodeViewModelState extends ChangeNotifier {
     required int treeDepth,
     required String key,
     required dynamic value,
-    required NodeViewModelState? parentNode,
+    required NodeViewModelState? parent,
   }) =>
       NodeViewModelState._(
         key: key,
         value: value,
         treeDepth: treeDepth,
-        parentNode: parentNode,
+        parent: parent,
       );
 
   /// Build a [NodeViewModelState] as a class.
@@ -232,7 +232,7 @@ Map<String, NodeViewModelState> buildViewModelNodes(dynamic object) {
 Map<String, NodeViewModelState> _buildClassNodes({
   required Map<String, dynamic> object,
   int treeDepth = 0,
-  NodeViewModelState? parentNode,
+  NodeViewModelState? parent,
 }) {
   final map = <String, NodeViewModelState>{};
   object.forEach((key, dynamic value) {
@@ -245,10 +245,10 @@ Map<String, NodeViewModelState> _buildClassNodes({
       final children = _buildClassNodes(
         object: value,
         treeDepth: treeDepth + 1,
-        parentNode: classNode,
+        parent: classNode,
       );
 
-      classNode.setNodeHierarchy(parentNode: parentNode, children: children);
+      classNode.setNodeHierarchy(parent: parent, children: children);
 
       map[key] = classNode;
     } else if (value is List) {
@@ -260,10 +260,10 @@ Map<String, NodeViewModelState> _buildClassNodes({
       final children = _buildArrayNodes(
         object: value,
         treeDepth: treeDepth,
-        parentNode: arrayNode,
+        parent: arrayNode,
       );
 
-      arrayNode.setNodeHierarchy(parentNode: parentNode, children: children);
+      arrayNode.setNodeHierarchy(parent: parent, children: children);
 
       map[key] = arrayNode;
     } else {
@@ -271,7 +271,7 @@ Map<String, NodeViewModelState> _buildClassNodes({
         key: key,
         value: value,
         treeDepth: treeDepth,
-        parentNode: parentNode,
+        parent: parent,
       );
     }
   });
@@ -281,7 +281,7 @@ Map<String, NodeViewModelState> _buildClassNodes({
 List<NodeViewModelState> _buildArrayNodes({
   required List<dynamic> object,
   int treeDepth = 0,
-  NodeViewModelState? parentNode,
+  NodeViewModelState? parent,
 }) {
   final array = <NodeViewModelState>[];
   for (var i = 0; i < object.length; i++) {
@@ -296,10 +296,10 @@ List<NodeViewModelState> _buildArrayNodes({
       final children = _buildClassNodes(
         object: arrayValue,
         treeDepth: treeDepth + 2,
-        parentNode: classNode,
+        parent: classNode,
       );
 
-      classNode.setNodeHierarchy(parentNode: parentNode, children: children);
+      classNode.setNodeHierarchy(parent: parent, children: children);
 
       array.add(classNode);
     } else {
@@ -308,7 +308,7 @@ List<NodeViewModelState> _buildArrayNodes({
           key: i.toString(),
           value: arrayValue,
           treeDepth: treeDepth + 1,
-          parentNode: parentNode,
+          parent: parent,
         ),
       );
     }
