@@ -29,7 +29,7 @@ class PropertyStyle {
   final TextStyle style;
   final VoidCallback? onTap;
 
-  PropertyStyle({required this.style, this.onTap});
+  const PropertyStyle({required this.style, this.onTap});
 }
 
 /// A widget to display a list of Json nodes.
