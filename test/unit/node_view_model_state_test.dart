@@ -33,6 +33,7 @@ void main() {
         final parent = NodeViewModelState.fromArray(
           treeDepth: 1,
           key: 'parentKey',
+          parent: null,
         );
 
         final viewModel = NodeViewModelState.fromProperty(
@@ -89,6 +90,7 @@ void main() {
         final viewModel = NodeViewModelState.fromClass(
           treeDepth: 0,
           key: 'classKey',
+          parent: null,
         );
 
         final classMap = {
@@ -106,7 +108,7 @@ void main() {
           ),
         };
 
-        viewModel.setNodeHierarchy(parent: null, children: classMap);
+        viewModel.value = classMap;
 
         expect(viewModel.key, 'classKey');
         expect(viewModel.value, isA<Map<String, NodeViewModelState>>());
@@ -124,6 +126,7 @@ void main() {
         final viewModel = NodeViewModelState.fromClass(
           treeDepth: 0,
           key: 'classKey',
+          parent: null,
         );
 
         final classMap = {
@@ -141,7 +144,7 @@ void main() {
           ),
         };
 
-        viewModel.setNodeHierarchy(parent: null, children: classMap);
+        viewModel.value = classMap;
 
         expect(viewModel.childrenCount, 2);
         expect(viewModel.children, hasLength(2));
@@ -153,11 +156,13 @@ void main() {
         final viewModel = NodeViewModelState.fromClass(
           treeDepth: 0,
           key: 'classKey',
+          parent: null,
         );
 
         final subClass = NodeViewModelState.fromClass(
           treeDepth: 1,
           key: 'innerClass',
+          parent: viewModel,
         );
 
         final classMap = {
@@ -170,19 +175,16 @@ void main() {
           'innerClass': subClass,
         };
 
-        subClass.setNodeHierarchy(
-          parent: viewModel,
-          children: {
-            'innerClassProperty': NodeViewModelState.fromProperty(
-              treeDepth: 2,
-              key: 'innerClassProperty',
-              value: 123,
-              parent: classMap['innerClass'],
-            ),
-          },
-        );
+        subClass.value = {
+          'innerClassProperty': NodeViewModelState.fromProperty(
+            treeDepth: 2,
+            key: 'innerClassProperty',
+            value: 123,
+            parent: classMap['innerClass'],
+          ),
+        };
 
-        viewModel.setNodeHierarchy(parent: null, children: classMap);
+        viewModel.value = classMap;
         viewModel.highlight();
 
         expect(viewModel.isHighlighted, isTrue);
@@ -209,6 +211,7 @@ void main() {
         final viewModel = NodeViewModelState.fromArray(
           treeDepth: 0,
           key: 'arrayKey',
+          parent: null,
         );
 
         final arrayValues = [
@@ -226,7 +229,7 @@ void main() {
           ),
         ];
 
-        viewModel.setNodeHierarchy(parent: null, children: arrayValues);
+        viewModel.value = arrayValues;
 
         expect(viewModel.key, 'arrayKey');
         expect(viewModel.value, isA<List<NodeViewModelState>>());
@@ -242,6 +245,7 @@ void main() {
         final viewModel = NodeViewModelState.fromArray(
           treeDepth: 0,
           key: 'arrayKey',
+          parent: null,
         );
 
         final arrayValues = [
@@ -259,7 +263,7 @@ void main() {
           ),
         ];
 
-        viewModel.setNodeHierarchy(parent: null, children: arrayValues);
+        viewModel.value = arrayValues;
 
         expect(viewModel.childrenCount, 2);
         expect(viewModel.children, hasLength(2));
@@ -271,28 +275,27 @@ void main() {
         final viewModel = NodeViewModelState.fromArray(
           treeDepth: 0,
           key: 'arrayKey',
+          parent: null,
         );
 
         final subClass = NodeViewModelState.fromClass(
           treeDepth: 1,
           key: 'class',
+          parent: viewModel,
         );
 
-        subClass.setNodeHierarchy(
-          parent: viewModel,
-          children: {
-            'classProperty': NodeViewModelState.fromProperty(
-              treeDepth: 2,
-              key: 'classProperty',
-              value: 123,
-              parent: subClass,
-            ),
-          },
-        );
+        subClass.value = {
+          'classProperty': NodeViewModelState.fromProperty(
+            treeDepth: 2,
+            key: 'classProperty',
+            value: 123,
+            parent: subClass,
+          ),
+        };
 
         final arrayValues = [subClass];
 
-        viewModel.setNodeHierarchy(parent: null, children: arrayValues);
+        viewModel.value = arrayValues;
         viewModel.highlight();
 
         expect(viewModel.isHighlighted, isTrue);
@@ -311,21 +314,25 @@ void main() {
         final firstClass = NodeViewModelState.fromClass(
           treeDepth: 0,
           key: 'firstClass',
+          parent: null,
         );
 
         final firstClassFirstField = NodeViewModelState.fromClass(
           treeDepth: 1,
           key: 'firstClass.firstField',
+          parent: firstClass,
         );
 
         final firstClassFirstClassField = NodeViewModelState.fromClass(
           treeDepth: 2,
           key: 'firstClass.firstClassField',
+          parent: firstClassFirstField,
         );
 
         final firstClassFirstClassFieldArray = NodeViewModelState.fromArray(
           treeDepth: 3,
           key: 'firstClass.firstClassField.array',
+          parent: firstClassFirstClassField,
         );
 
         final firstClassFirstClassFieldArrayField =
@@ -336,25 +343,11 @@ void main() {
           parent: firstClassFirstClassFieldArray,
         );
 
-        firstClass.setNodeHierarchy(
-          parent: null,
-          children: firstClassFirstField,
-        );
-
-        firstClassFirstField.setNodeHierarchy(
-          parent: firstClass,
-          children: firstClassFirstClassField,
-        );
-
-        firstClassFirstClassField.setNodeHierarchy(
-          parent: firstClassFirstField,
-          children: firstClassFirstClassFieldArray,
-        );
-
-        firstClassFirstClassFieldArray.setNodeHierarchy(
-          parent: firstClassFirstClassField,
-          children: firstClassFirstClassFieldArrayField,
-        );
+        firstClass.value = firstClassFirstField;
+        firstClassFirstField.value = firstClassFirstClassField;
+        firstClassFirstClassField.value = firstClassFirstClassFieldArray;
+        firstClassFirstClassFieldArray.value =
+            firstClassFirstClassFieldArrayField;
 
         expect(firstClass.parent, isNull);
         expect(firstClassFirstField.parent, firstClass);

@@ -48,23 +48,22 @@ class NodeViewModelState extends ChangeNotifier {
   bool _isFocused = false;
   bool _isCollapsed;
 
+  /// A reference to the closest node above this one.
   NodeViewModelState? _parent;
   NodeViewModelState? get parent => _parent;
 
   /// This attribute value, it may be one of the following:
   /// [num], [String], [bool], [Null], [Map<String, NodeViewModelState>] or
   /// [List<NodeViewModelState>].
-  dynamic value;
+  dynamic _value;
 
   /// Updates the parent node reference and the [value] of the current node.
   @visibleForTesting
-  void setNodeHierarchy({
-    required NodeViewModelState? parent,
-    required dynamic children,
-  }) {
-    _parent = parent;
-    value = children;
+  set value(dynamic value) {
+    _value = value;
   }
+
+  dynamic get value => _value;
 
   late int childrenCount = () {
     final dynamic currentValue = value;
@@ -83,13 +82,14 @@ class NodeViewModelState extends ChangeNotifier {
   NodeViewModelState._({
     required this.treeDepth,
     required this.key,
-    this.value,
     this.isClass = false,
     this.isArray = false,
+    dynamic value,
     bool isCollapsed = false,
     NodeViewModelState? parent,
   })  : _isCollapsed = isCollapsed,
-        _parent = parent;
+        _parent = parent,
+        _value = value;
 
   /// Build a [NodeViewModelState] as a property.
   /// A property is a single attribute in the json, can be of a type
@@ -120,11 +120,13 @@ class NodeViewModelState extends ChangeNotifier {
   factory NodeViewModelState.fromClass({
     required int treeDepth,
     required String key,
+    required NodeViewModelState? parent,
   }) =>
       NodeViewModelState._(
         isClass: true,
         key: key,
         treeDepth: treeDepth,
+        parent: parent,
       );
 
   /// Build a [NodeViewModelState] as an array.
@@ -138,11 +140,13 @@ class NodeViewModelState extends ChangeNotifier {
   factory NodeViewModelState.fromArray({
     required int treeDepth,
     required String key,
+    required NodeViewModelState? parent,
   }) =>
       NodeViewModelState._(
         isArray: true,
         key: key,
         treeDepth: treeDepth,
+        parent: parent,
       );
 
   /// Returns [true] if this node is highlighted.
@@ -239,6 +243,7 @@ Map<String, NodeViewModelState> _buildClassNodes({
       final classNode = NodeViewModelState.fromClass(
         treeDepth: treeDepth,
         key: key,
+        parent: parent,
       );
 
       final children = _buildClassNodes(
@@ -247,13 +252,14 @@ Map<String, NodeViewModelState> _buildClassNodes({
         parent: classNode,
       );
 
-      classNode.setNodeHierarchy(parent: parent, children: children);
+      classNode.value = children;
 
       map[key] = classNode;
     } else if (value is List) {
       final arrayNode = NodeViewModelState.fromArray(
         treeDepth: treeDepth,
         key: key,
+        parent: parent,
       );
 
       final children = _buildArrayNodes(
@@ -262,7 +268,7 @@ Map<String, NodeViewModelState> _buildClassNodes({
         parent: arrayNode,
       );
 
-      arrayNode.setNodeHierarchy(parent: parent, children: children);
+      arrayNode.value = children;
 
       map[key] = arrayNode;
     } else {
@@ -290,6 +296,7 @@ List<NodeViewModelState> _buildArrayNodes({
       final classNode = NodeViewModelState.fromClass(
         key: i.toString(),
         treeDepth: treeDepth + 1,
+        parent: parent,
       );
 
       final children = _buildClassNodes(
@@ -298,7 +305,7 @@ List<NodeViewModelState> _buildArrayNodes({
         parent: classNode,
       );
 
-      classNode.setNodeHierarchy(parent: parent, children: children);
+      classNode.value = children;
 
       array.add(classNode);
     } else {
