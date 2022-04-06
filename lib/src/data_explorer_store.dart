@@ -48,13 +48,11 @@ class NodeViewModelState extends ChangeNotifier {
   bool _isFocused = false;
   bool _isCollapsed;
 
-  /// A reference to the closest node above this one.
   NodeViewModelState? _parent;
+
+  /// A reference to the closest node above this one.
   NodeViewModelState? get parent => _parent;
 
-  /// This attribute value, it may be one of the following:
-  /// [num], [String], [bool], [Null], [Map<String, NodeViewModelState>] or
-  /// [List<NodeViewModelState>].
   dynamic _value;
 
   /// Updates the [value] of this node.
@@ -63,6 +61,9 @@ class NodeViewModelState extends ChangeNotifier {
     _value = value;
   }
 
+  /// This attribute value, it may be one of the following:
+  /// [num], [String], [bool], [Null], [Map<String, NodeViewModelState>] or
+  /// [List<NodeViewModelState>].
   dynamic get value => _value;
 
   late int childrenCount = () {
