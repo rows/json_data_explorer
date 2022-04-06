@@ -667,8 +667,8 @@ class _HighlightedText extends StatelessWidget {
       start = index + highlightedText.length;
     }
 
-    return RichText(
-      text: TextSpan(
+    return Text.rich(
+      TextSpan(
         children: spans,
       ),
     );

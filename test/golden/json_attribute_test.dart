@@ -40,6 +40,126 @@ void main() {
     await screenMatchesGolden(tester, 'json_attribute');
   });
 
+  group('Search', () {
+    const _searchTestJson = '''
+    {
+      "property": "property value",
+      "anotherProperty": "another property value"
+    }
+    ''';
+
+    testGoldens('Highlight', (tester) async {
+      final dynamic jsonObject = json.decode(_searchTestJson);
+      Widget buildWidget({
+        required String searchTerm,
+        Function(DataExplorerStore store)? onStoreCreate,
+        DataExplorerTheme? theme,
+      }) {
+        return ChangeNotifierProvider(
+          create: (context) {
+            final store = DataExplorerStore()
+              ..buildNodes(jsonObject)
+              ..search(searchTerm);
+            onStoreCreate?.call(store);
+            return store;
+          },
+          child: Consumer<DataExplorerStore>(
+            builder: (context, state, child) => JsonAttribute(
+              node: state.displayNodes.last,
+              theme: theme ?? DataExplorerTheme.defaultTheme,
+            ),
+          ),
+        );
+      }
+
+      final customTheme = DataExplorerTheme(
+          keySearchHighlightTextStyle: const TextStyle(
+            fontSize: 18,
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            backgroundColor: Colors.green,
+          ),
+          valueSearchHighlightTextStyle: const TextStyle(
+            fontSize: 18,
+            color: Colors.black,
+            backgroundColor: Colors.purpleAccent,
+          ),
+          focusedKeySearchHighlightTextStyle: const TextStyle(
+            fontSize: 18,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            backgroundColor: Colors.black,
+          ),
+          focusedValueSearchHighlightTextStyle: const TextStyle(
+            fontSize: 18,
+            color: Colors.grey,
+            fontWeight: FontWeight.bold,
+            backgroundColor: Colors.red,
+          ));
+
+      final builder = GoldenBuilder.column(bgColor: Colors.white)
+        ..addScenario(
+          'highlight',
+          buildWidget(
+            searchTerm: 'property',
+          ),
+        )
+        ..addScenario(
+          'property focused highlight',
+          buildWidget(
+            searchTerm: 'property',
+            onStoreCreate: (store) => store
+              ..focusNextSearchResult()
+              ..focusNextSearchResult(),
+          ),
+        )
+        ..addScenario(
+          'value focused highlight',
+          buildWidget(
+            searchTerm: 'property',
+            onStoreCreate: (store) => store
+              ..focusNextSearchResult()
+              ..focusNextSearchResult()
+              ..focusNextSearchResult(),
+          ),
+        )
+        ..addScenario(
+          'custom theme highlight',
+          buildWidget(
+            searchTerm: 'property',
+            theme: customTheme,
+          ),
+        )
+        ..addScenario(
+          'custom theme property focused highlight',
+          buildWidget(
+            searchTerm: 'property',
+            theme: customTheme,
+            onStoreCreate: (store) => store
+              ..focusNextSearchResult()
+              ..focusNextSearchResult(),
+          ),
+        )
+        ..addScenario(
+          'custom theme value focused highlight',
+          buildWidget(
+            searchTerm: 'property',
+            theme: customTheme,
+            onStoreCreate: (store) => store
+              ..focusNextSearchResult()
+              ..focusNextSearchResult()
+              ..focusNextSearchResult(),
+          ),
+        );
+
+      await tester.pumpWidgetBuilder(
+        builder.build(),
+        surfaceSize: const Size(400, 600),
+      );
+      await screenMatchesGolden(tester, 'search');
+    });
+  });
+
   group('Indentation', () {
     Future testIndentationGuidelines(
       WidgetTester tester, {
