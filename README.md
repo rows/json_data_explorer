@@ -164,16 +164,16 @@ Now all property keys are displayed as `key ->`.
 Property values `style` and `onTap` can be changed dynamically by using 
 the `valueStyleBuilder` parameter. It expects a function that receives
 the property `dynamic value` and the current `style`, and returns 
-a `PropertyStyle`. 
+a `PropertyOverrides`. 
 
-An exemple is adding interaction to values that contains links:
+An example is adding interaction to values that contains links:
 
 ```dart
 JsonDataExplorer(
   nodes: state.displayNodes,
   valueStyleBuilder: (value, style) {
     final isUrl = _valueIsUrl(value);
-    return PropertyStyle(
+    return PropertyOverrides(
       style: isUrl
           ? style.copyWith(
               decoration: TextDecoration.underline,
@@ -185,7 +185,7 @@ JsonDataExplorer(
 )
 ```
 
-Or, folowing the same priciple, change how the value looks for specific 
+Or, folowing the same principle, change how the value looks for specific 
 value types: 
 
 ```dart
@@ -193,13 +193,13 @@ JsonDataExplorer(
   nodes: state.displayNodes,
   valueStyleBuilder: (value, style) {
     if (value is num) {
-      return PropertyStyle(
+      return PropertyOverrides(
         style: style.copyWith(
           color: Colors.blue,
         ),
       );
     } 
-    return PropertyStyle(
+    return PropertyOverrides(
       style: style,
     );
   },

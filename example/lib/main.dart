@@ -260,7 +260,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                     /// interaction when an URL is detected.
                     valueStyleBuilder: (dynamic value, style) {
                       final isUrl = _valueIsUrl(value);
-                      return PropertyStyle(
+                      return PropertyOverrides(
                         style: isUrl
                             ? style.copyWith(
                                 decoration: TextDecoration.underline,

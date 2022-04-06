@@ -22,14 +22,17 @@ typedef Formatter = String Function(dynamic value);
 ///
 /// See also:
 /// * [PropertyStyle]
-typedef StyleBuilder = PropertyStyle Function(dynamic value, TextStyle style);
+typedef StyleBuilder = PropertyOverrides Function(
+  dynamic value,
+  TextStyle style,
+);
 
 /// Holds information about a property value style and interaction.
-class PropertyStyle {
+class PropertyOverrides {
   final TextStyle style;
   final VoidCallback? onTap;
 
-  const PropertyStyle({required this.style, this.onTap});
+  const PropertyOverrides({required this.style, this.onTap});
 }
 
 /// A widget to display a list of Json nodes.
@@ -258,7 +261,7 @@ class _JsonAttribute extends StatelessWidget {
             node.value,
             theme.valueTextStyle,
           )
-        : PropertyStyle(style: theme.valueTextStyle);
+        : PropertyOverrides(style: theme.valueTextStyle);
 
     final hasInteraction = node.isRoot || valueStyle.onTap != null;
 
