@@ -647,26 +647,25 @@ class DataExplorerStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Expands all the parent nodes of each [SearchResult.node] in [searchResults].
+  /// Expands all the parent nodes of each [SearchResult.node] in
+  /// [searchResults].
   void expandSearchResults() {
-    if (searchResults.isEmpty) {
-      return;
-    }
-
     for (final searchResult in searchResults) {
-      _expandParentNodes(node: searchResult.node);
+      _expandParentNodes(searchResult.node);
     }
   }
 
   /// Expands all the parent nodes of the given [node].
-  void _expandParentNodes({required NodeViewModelState node}) {
-    for (final element in _allNodes) {
-      if (element.isRoot && element.children.contains(node)) {
-        _expandParentNodes(node: element);
+  void _expandParentNodes(NodeViewModelState node) {
+    final parent = node.parent;
 
-        expandNode(element);
-      }
+    if (parent == null) {
+      return;
     }
+
+    _expandParentNodes(parent);
+
+    expandNode(parent);
   }
 }
 
