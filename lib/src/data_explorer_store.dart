@@ -57,7 +57,7 @@ class NodeViewModelState extends ChangeNotifier {
   /// [List<NodeViewModelState>].
   dynamic _value;
 
-  /// Updates the parent node reference and the [value] of the current node.
+  /// Updates the [value] of this node.
   @visibleForTesting
   set value(dynamic value) {
     _value = value;
