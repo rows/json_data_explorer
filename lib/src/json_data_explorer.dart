@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'data_explorer_store.dart';
 import 'data_explorer_theme.dart';
@@ -16,6 +15,25 @@ typedef NodeBuilder = Widget Function(
 /// Signature for a function that takes a generic value and converts it to a
 /// string.
 typedef Formatter = String Function(dynamic value);
+
+/// Signature for a function that takes a generic value and the current theme
+/// property value style and returns a [StyleBuilder] that allows the style
+/// and interaction to be changed dynamically.
+///
+/// See also:
+/// * [PropertyStyle]
+typedef StyleBuilder = PropertyOverrides Function(
+  dynamic value,
+  TextStyle style,
+);
+
+/// Holds information about a property value style and interaction.
+class PropertyOverrides {
+  final TextStyle style;
+  final VoidCallback? onTap;
+
+  const PropertyOverrides({required this.style, this.onTap});
+}
 
 /// A widget to display a list of Json nodes.
 ///
@@ -110,6 +128,12 @@ class JsonDataExplorer extends StatelessWidget {
   /// method.
   final Formatter? valueFormatter;
 
+  /// Customizes a property style and interaction based on its value.
+  ///
+  /// See also:
+  /// * [StyleBuilder]
+  final StyleBuilder? valueStyleBuilder;
+
   /// Sets the spacing between each list item.
   final double itemSpacing;
 
@@ -124,6 +148,7 @@ class JsonDataExplorer extends StatelessWidget {
     this.rootNameFormatter,
     this.propertyNameFormatter,
     this.valueFormatter,
+    this.valueStyleBuilder,
     this.itemSpacing = 2,
     DataExplorerTheme? theme,
   })  : theme = theme ?? DataExplorerTheme.defaultTheme,
@@ -152,6 +177,7 @@ class JsonDataExplorer extends StatelessWidget {
             rootNameFormatter: rootNameFormatter,
             propertyNameFormatter: propertyNameFormatter,
             valueFormatter: valueFormatter,
+            valueStyleBuilder: valueStyleBuilder,
             itemSpacing: itemSpacing,
             theme: theme,
           ),
@@ -197,6 +223,12 @@ class _JsonAttribute extends StatelessWidget {
   /// method.
   final Formatter? valueFormatter;
 
+  /// Customizes a property style and interaction based on its value.
+  ///
+  /// See also:
+  /// * [StyleBuilder]
+  final StyleBuilder? valueStyleBuilder;
+
   /// Sets the spacing between each list item.
   final double itemSpacing;
 
@@ -213,21 +245,28 @@ class _JsonAttribute extends StatelessWidget {
     this.rootNameFormatter,
     this.propertyNameFormatter,
     this.valueFormatter,
+    this.valueStyleBuilder,
     this.itemSpacing = 2,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final valueIsUrl = _valueIsUrl();
     final searchTerm =
         context.select<DataExplorerStore, String>((store) => store.searchTerm);
 
     final spacing = itemSpacing / 2;
 
+    final valueStyle = valueStyleBuilder != null
+        ? valueStyleBuilder!.call(
+            node.value,
+            theme.valueTextStyle,
+          )
+        : PropertyOverrides(style: theme.valueTextStyle);
+
+    final hasInteraction = node.isRoot || valueStyle.onTap != null;
+
     return MouseRegion(
-      cursor: node.isRoot || valueIsUrl
-          ? SystemMouseCursors.click
-          : MouseCursor.defer,
+      cursor: hasInteraction ? SystemMouseCursors.click : MouseCursor.defer,
       onEnter: (event) {
         node.highlight();
         node.focus();
@@ -238,7 +277,15 @@ class _JsonAttribute extends StatelessWidget {
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: node.isRoot || valueIsUrl ? () => _onTap(context) : null,
+        onTap: hasInteraction
+            ? () {
+                if (valueStyle.onTap != null) {
+                  valueStyle.onTap!.call();
+                } else {
+                  _onTap(context);
+                }
+              }
+            : null,
         child: AnimatedBuilder(
           animation: node,
 
@@ -289,8 +336,11 @@ class _JsonAttribute extends StatelessWidget {
                             node: node,
                             searchTerm: searchTerm,
                             valueFormatter: valueFormatter,
-                            valueIsUrl: valueIsUrl,
-                            theme: theme,
+                            style: valueStyle.style,
+                            searchHighlightStyle:
+                                theme.valueSearchHighlightTextStyle,
+                            focusedSearchHighlightStyle:
+                                theme.focusedValueSearchHighlightTextStyle,
                           ),
                         ),
                       ),
@@ -310,9 +360,6 @@ class _JsonAttribute extends StatelessWidget {
   }
 
   Future _onTap(BuildContext context) async {
-    if (_valueIsUrl()) {
-      return launch(node.value as String);
-    }
     if (node.isRoot) {
       final dataExplorerStore = Provider.of<DataExplorerStore>(
         context,
@@ -324,13 +371,6 @@ class _JsonAttribute extends StatelessWidget {
         dataExplorerStore.collapseNode(node);
       }
     }
-  }
-
-  bool _valueIsUrl() {
-    if (node.value is String) {
-      return Uri.tryParse(node.value as String)?.hasAbsolutePath ?? false;
-    }
-    return false;
   }
 
   /// Default value for [collapsableToggleBuilder]
@@ -412,16 +452,18 @@ class _PropertyNodeWidget extends StatelessWidget {
   final NodeViewModelState node;
   final String searchTerm;
   final Formatter? valueFormatter;
-  final bool valueIsUrl;
-  final DataExplorerTheme theme;
+  final TextStyle style;
+  final TextStyle searchHighlightStyle;
+  final TextStyle focusedSearchHighlightStyle;
 
   const _PropertyNodeWidget({
     Key? key,
     required this.node,
     required this.searchTerm,
     required this.valueFormatter,
-    required this.valueIsUrl,
-    required this.theme,
+    required this.style,
+    required this.searchHighlightStyle,
+    required this.focusedSearchHighlightStyle,
   }) : super(key: key);
 
   @override
@@ -429,12 +471,6 @@ class _PropertyNodeWidget extends StatelessWidget {
     final showHighlightedText = context.select<DataExplorerStore, bool>(
       (store) => store.searchResults.isNotEmpty,
     );
-
-    final style = valueIsUrl
-        ? theme.valueTextStyle.copyWith(
-            decoration: TextDecoration.underline,
-          )
-        : theme.valueTextStyle;
 
     final text = valueFormatter?.call(node.value) ?? node.value.toString();
 
@@ -454,8 +490,8 @@ class _PropertyNodeWidget extends StatelessWidget {
       highlightedText: searchTerm,
       style: style,
       highlightedStyle: isValueSearchFocused
-          ? theme.focusedValueSearchHighlightTextStyle
-          : theme.valueSearchHighlightTextStyle,
+          ? focusedSearchHighlightStyle
+          : searchHighlightStyle,
     );
   }
 }
