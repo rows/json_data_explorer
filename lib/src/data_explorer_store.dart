@@ -593,11 +593,11 @@ class DataExplorerStore extends ChangeNotifier {
 
     if (_focusedSearchResultIndex < _searchResults.length - 1) {
       _focusedSearchResultIndex += 1;
+      notifyListeners();
     } else if (loop) {
       _focusedSearchResultIndex = 0;
+      notifyListeners();
     }
-
-    notifyListeners();
   }
 
   /// Sets the focus on the previous search result.
