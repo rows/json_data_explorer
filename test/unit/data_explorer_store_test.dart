@@ -479,6 +479,21 @@ void main() {
         verify(listener.call).called(1);
       });
 
+      test('focus first result when last result is focused and loop is true',
+          () {
+        final store = DataExplorerStore();
+        store.buildNodes(json.decode(testJson));
+
+        store.search('firstClassField.innerClassField');
+        expect(store.focusedSearchResultIndex, 0);
+
+        store.focusNextSearchResult();
+        expect(store.focusedSearchResultIndex, 1);
+
+        store.focusNextSearchResult(loop: true);
+        expect(store.focusedSearchResultIndex, 0);
+      });
+
       test('moves focus to previous result', () {
         final store = DataExplorerStore();
         store.buildNodes(json.decode(testJson));
