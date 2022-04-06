@@ -561,6 +561,53 @@ void main() {
         expect(store.focusedSearchResultIndex, 0);
         verifyNever(listener.call);
       });
+
+      group('expand parent nodes', () {
+        test('works properly', () {
+          final store = DataExplorerStore();
+          store.buildNodes(json.decode(testJson), areAllCollapsed: true);
+
+          store.search('secondClass.firstClassField');
+          store.expandSearchResults();
+
+          expect(store.getNodeByKey('firstClass').isCollapsed, isTrue);
+        });
+
+        test('works properly when there are multiple search results', () {
+          final store = DataExplorerStore();
+          store.buildNodes(json.decode(testJson), areAllCollapsed: true);
+
+          store.search('secondClassField.thirdField');
+          store.expandSearchResults();
+
+          expect(store.getNodeByKey('firstClass').isCollapsed, isFalse);
+
+          expect(
+            store.getNodeByKey('firstClass.firstClassField').isCollapsed,
+            isTrue,
+          );
+
+          expect(
+            store.getNodeByKey('firstClass.secondClassField').isCollapsed,
+            isFalse,
+          );
+
+          expect(store.getNodeByKey('firstClass.array').isCollapsed, isTrue);
+          expect(store.getNodeByKey('secondClass').isCollapsed, isFalse);
+
+          expect(
+            store.getNodeByKey('secondClass.firstClassField').isCollapsed,
+            isTrue,
+          );
+
+          expect(
+            store.getNodeByKey('secondClass.secondClassField').isCollapsed,
+            isFalse,
+          );
+
+          expect(store.getNodeByKey('secondClass.array').isCollapsed, isTrue);
+        });
+      });
     });
 
     test('parent node of each node is correct', () {

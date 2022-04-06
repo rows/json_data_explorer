@@ -643,7 +643,29 @@ class DataExplorerStore extends ChangeNotifier {
         }
       }
     }
+
     notifyListeners();
+  }
+
+  /// Expands all the parent nodes of each [SearchResult.node] in
+  /// [searchResults].
+  void expandSearchResults() {
+    for (final searchResult in searchResults) {
+      _expandParentNodes(searchResult.node);
+    }
+  }
+
+  /// Expands all the parent nodes of the given [node].
+  void _expandParentNodes(NodeViewModelState node) {
+    final parent = node.parent;
+
+    if (parent == null) {
+      return;
+    }
+
+    _expandParentNodes(parent);
+
+    expandNode(parent);
   }
 }
 
