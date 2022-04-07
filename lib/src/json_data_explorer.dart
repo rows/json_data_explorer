@@ -414,6 +414,22 @@ class _RootNodeWidget extends StatelessWidget {
     return propertyNameFormatter?.call(node.key) ?? '${node.key}:';
   }
 
+  SearchMatch? _getSearchMatch(DataExplorerStore store) {
+    if (store.searchResults.isEmpty) {
+      return null;
+    }
+
+    if (store.focusedSearchResult.node != node) {
+      return null;
+    }
+
+    if (!store.focusedSearchResult.key) {
+      return null;
+    }
+
+    return store.focusedSearchResult.match;
+  }
+
   @override
   Widget build(BuildContext context) {
     final showHighlightedText = context.select<DataExplorerStore, bool>(
@@ -429,20 +445,16 @@ class _RootNodeWidget extends StatelessWidget {
       return Text(text, style: attributeKeyStyle);
     }
 
-    final isKeySearchFocused = context.select<DataExplorerStore, bool>(
-      (store) => store.searchResults.isNotEmpty
-          ? store.focusedSearchResult.node == node &&
-              store.focusedSearchResult.key
-          : false,
-    );
+    final match =
+        context.select<DataExplorerStore, SearchMatch?>(_getSearchMatch);
 
     return _HighlightedText(
       text: text,
       highlightedText: searchTerm,
       style: attributeKeyStyle,
-      highlightedStyle: isKeySearchFocused
-          ? theme.focusedKeySearchNodeHighlightTextStyle
-          : theme.keySearchHighlightTextStyle,
+      primaryMatchStyle: theme.focusedKeySearchNodeHighlightTextStyle,
+      secondaryMatchStyle: theme.keySearchHighlightTextStyle,
+      match: match,
     );
   }
 }
@@ -466,6 +478,22 @@ class _PropertyNodeWidget extends StatelessWidget {
     required this.focusedSearchHighlightStyle,
   }) : super(key: key);
 
+  SearchMatch? _getSearchMatch(DataExplorerStore store) {
+    if (store.searchResults.isEmpty) {
+      return null;
+    }
+
+    if (store.focusedSearchResult.node != node) {
+      return null;
+    }
+
+    if (!store.focusedSearchResult.value) {
+      return null;
+    }
+
+    return store.focusedSearchResult.match;
+  }
+
   @override
   Widget build(BuildContext context) {
     final showHighlightedText = context.select<DataExplorerStore, bool>(
@@ -478,20 +506,16 @@ class _PropertyNodeWidget extends StatelessWidget {
       return Text(text, style: style);
     }
 
-    final isValueSearchFocused = context.select<DataExplorerStore, bool>(
-      (store) => store.searchResults.isNotEmpty
-          ? store.focusedSearchResult.node == node &&
-              store.focusedSearchResult.value
-          : false,
-    );
+    final match =
+        context.select<DataExplorerStore, SearchMatch?>(_getSearchMatch);
 
     return _HighlightedText(
       text: text,
       highlightedText: searchTerm,
       style: style,
-      highlightedStyle: isValueSearchFocused
-          ? focusedSearchHighlightStyle
-          : searchHighlightStyle,
+      primaryMatchStyle: focusedSearchHighlightStyle,
+      secondaryMatchStyle: searchHighlightStyle,
+      match: match,
     );
   }
 }
@@ -572,20 +596,25 @@ class _HighlightedText extends StatelessWidget {
   final String text;
   final String highlightedText;
   final TextStyle style;
-  final TextStyle highlightedStyle;
+  final TextStyle primaryMatchStyle;
+  final TextStyle secondaryMatchStyle;
+  final SearchMatch? match;
 
   const _HighlightedText({
     Key? key,
     required this.text,
     required this.highlightedText,
     required this.style,
-    required this.highlightedStyle,
+    required this.primaryMatchStyle,
+    required this.secondaryMatchStyle,
+    required this.match,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final lowerCaseText = text.toLowerCase();
     final lowerCaseQuery = highlightedText.toLowerCase();
+
     if (highlightedText.isEmpty || !lowerCaseText.contains(lowerCaseQuery)) {
       return Text(text, style: style);
     }
@@ -613,7 +642,8 @@ class _HighlightedText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: text.substring(index, index + highlightedText.length),
-          style: highlightedStyle,
+          style:
+              index == match?.begin ? primaryMatchStyle : secondaryMatchStyle,
         ),
       );
       start = index + highlightedText.length;
