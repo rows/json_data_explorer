@@ -562,6 +562,44 @@ void main() {
         verifyNever(listener.call);
       });
 
+      test('search matches are correct', () {
+        final store = DataExplorerStore();
+        store.buildNodes(json.decode(testJson));
+
+        store.search('f');
+        expect(store.searchResults, hasLength(133));
+
+        store.focusNextSearchResult();
+        expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
+        expect(store.focusedSearchResult.key, isTrue);
+        expect(store.focusedSearchResult.value, isFalse);
+
+        store.focusNextSearchResult();
+        expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
+        expect(store.focusedSearchResult.key, isTrue);
+        expect(store.focusedSearchResult.value, isFalse);
+
+        store.focusNextSearchResult();
+        expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
+        expect(store.focusedSearchResult.key, isTrue);
+        expect(store.focusedSearchResult.value, isFalse);
+
+        store.focusNextSearchResult();
+        expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
+        expect(store.focusedSearchResult.key, isFalse);
+        expect(store.focusedSearchResult.value, isTrue);
+
+        store.focusNextSearchResult();
+        expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
+        expect(store.focusedSearchResult.key, isFalse);
+        expect(store.focusedSearchResult.value, isTrue);
+
+        store.focusNextSearchResult();
+        expect(store.focusedSearchResult.node, store.displayNodes.elementAt(2));
+        expect(store.focusedSearchResult.key, isTrue);
+        expect(store.focusedSearchResult.value, isFalse);
+      });
+
       group('expand parent nodes', () {
         test('works properly', () {
           final store = DataExplorerStore();
