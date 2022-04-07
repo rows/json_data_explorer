@@ -649,7 +649,11 @@ class DataExplorerStore extends ChangeNotifier {
 
       for (final matchIndex in matchesIndexes) {
         _searchResults.add(
-          SearchResult(node, key: true, matchIndex: matchIndex),
+          SearchResult(
+            node,
+            matchLocation: SearchMatchLocation.key,
+            matchIndex: matchIndex,
+          ),
         );
       }
 
@@ -659,7 +663,11 @@ class DataExplorerStore extends ChangeNotifier {
 
         for (final matchIndex in matchesIndexes) {
           _searchResults.add(
-            SearchResult(node, value: true, matchIndex: matchIndex),
+            SearchResult(
+              node,
+              matchLocation: SearchMatchLocation.value,
+              matchIndex: matchIndex,
+            ),
           );
         }
       }
@@ -714,18 +722,27 @@ class DataExplorerStore extends ChangeNotifier {
 
 /// A matched search in the given [node].
 ///
-/// If the match is registered in the node's key, then [key] is going to be
-/// true. If the match is in the value, then [value] is true.
+/// If the match is registered in the node's key, then [matchLocation] is going
+/// to be [SearchMatchLocation.key].
+///
+/// If the match is in the value, then [matchLocation] is
+/// [SearchMatchLocation.value].
 class SearchResult {
   final NodeViewModelState node;
-  final bool key;
-  final bool value;
+  final SearchMatchLocation matchLocation;
   final int matchIndex;
 
   const SearchResult(
     this.node, {
-    this.key = false,
-    this.value = false,
+    required this.matchLocation,
     required this.matchIndex,
-  }) : assert(key || value);
+  });
+}
+
+/// The location of the search match in a node.
+///
+/// Can be in the node's key or in the node's value.
+enum SearchMatchLocation {
+  key,
+  value,
 }

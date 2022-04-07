@@ -425,7 +425,7 @@ class _RootNodeWidget extends StatelessWidget {
     }
 
     // Assert that it's the key and not the value of the node.
-    if (!store.focusedSearchResult.key) {
+    if (store.focusedSearchResult.matchLocation != SearchMatchLocation.key) {
       return null;
     }
 
@@ -491,7 +491,7 @@ class _PropertyNodeWidget extends StatelessWidget {
     }
 
     // Assert that it's the value and not the key of the node.
-    if (!store.focusedSearchResult.value) {
+    if (store.focusedSearchResult.matchLocation != SearchMatchLocation.value) {
       return null;
     }
 

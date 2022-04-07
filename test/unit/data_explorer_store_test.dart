@@ -454,13 +454,11 @@ void main() {
         final expectedNode = store.displayNodes.elementAt(1);
         final firstMatch = store.searchResults.first;
         expect(firstMatch.node, expectedNode);
-        expect(firstMatch.key, isTrue);
-        expect(firstMatch.value, isFalse);
+        expect(firstMatch.matchLocation, SearchMatchLocation.key);
 
         final secondMatch = store.searchResults.elementAt(1);
         expect(secondMatch.node, expectedNode);
-        expect(secondMatch.key, isFalse);
-        expect(secondMatch.value, isTrue);
+        expect(secondMatch.matchLocation, SearchMatchLocation.value);
       });
 
       test('moves focus to next result', () {
@@ -571,33 +569,45 @@ void main() {
 
         store.focusNextSearchResult();
         expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
-        expect(store.focusedSearchResult.key, isTrue);
-        expect(store.focusedSearchResult.value, isFalse);
+        expect(
+          store.focusedSearchResult.matchLocation,
+          SearchMatchLocation.key,
+        );
 
         store.focusNextSearchResult();
         expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
-        expect(store.focusedSearchResult.key, isTrue);
-        expect(store.focusedSearchResult.value, isFalse);
+        expect(
+          store.focusedSearchResult.matchLocation,
+          SearchMatchLocation.key,
+        );
 
         store.focusNextSearchResult();
         expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
-        expect(store.focusedSearchResult.key, isTrue);
-        expect(store.focusedSearchResult.value, isFalse);
+        expect(
+          store.focusedSearchResult.matchLocation,
+          SearchMatchLocation.key,
+        );
 
         store.focusNextSearchResult();
         expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
-        expect(store.focusedSearchResult.key, isFalse);
-        expect(store.focusedSearchResult.value, isTrue);
+        expect(
+          store.focusedSearchResult.matchLocation,
+          SearchMatchLocation.value,
+        );
 
         store.focusNextSearchResult();
         expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
-        expect(store.focusedSearchResult.key, isFalse);
-        expect(store.focusedSearchResult.value, isTrue);
+        expect(
+          store.focusedSearchResult.matchLocation,
+          SearchMatchLocation.value,
+        );
 
         store.focusNextSearchResult();
         expect(store.focusedSearchResult.node, store.displayNodes.elementAt(2));
-        expect(store.focusedSearchResult.key, isTrue);
-        expect(store.focusedSearchResult.value, isFalse);
+        expect(
+          store.focusedSearchResult.matchLocation,
+          SearchMatchLocation.key,
+        );
       });
 
       group('expand parent nodes', () {
