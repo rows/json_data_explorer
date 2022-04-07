@@ -644,17 +644,45 @@ class DataExplorerStore extends ChangeNotifier {
 
   void _doSearch() {
     for (final node in _allNodes) {
-      if (node.key.toLowerCase().contains(searchTerm)) {
-        _searchResults.add(SearchResult(node, key: true));
+      final matchesIndexes = _getSearchTermMatchesIndexes(node.key);
+
+      for (final matchIndex in matchesIndexes) {
+        _searchResults.add(
+          SearchResult(
+            node,
+            matchLocation: SearchMatchLocation.key,
+            matchIndex: matchIndex,
+          ),
+        );
       }
+
       if (!node.isRoot) {
-        if (node.value.toString().toLowerCase().contains(searchTerm)) {
-          _searchResults.add(SearchResult(node, value: true));
+        final matchesIndexes =
+            _getSearchTermMatchesIndexes(node.value.toString());
+
+        for (final matchIndex in matchesIndexes) {
+          _searchResults.add(
+            SearchResult(
+              node,
+              matchLocation: SearchMatchLocation.value,
+              matchIndex: matchIndex,
+            ),
+          );
         }
       }
     }
 
     notifyListeners();
+  }
+
+  /// Finds all occurences of [searchTerm] in [victim] and retrieves all their
+  /// indexes.
+  Iterable<int> _getSearchTermMatchesIndexes(String victim) {
+    final pattern = RegExp(searchTerm, caseSensitive: false);
+
+    final matches = pattern.allMatches(victim).map((match) => match.start);
+
+    return matches;
   }
 
   /// Expands all the parent nodes of each [SearchResult.node] in
@@ -681,16 +709,27 @@ class DataExplorerStore extends ChangeNotifier {
 
 /// A matched search in the given [node].
 ///
-/// If the match is registered in the node's key, then [key] is going to be
-/// true. If the match is in the value, then [value] is true.
+/// If the match is registered in the node's key, then [matchLocation] is going
+/// to be [SearchMatchLocation.key].
+///
+/// If the match is in the value, then [matchLocation] is
+/// [SearchMatchLocation.value].
 class SearchResult {
   final NodeViewModelState node;
-  final bool key;
-  final bool value;
+  final SearchMatchLocation matchLocation;
+  final int matchIndex;
 
   const SearchResult(
     this.node, {
-    this.key = false,
-    this.value = false,
-  }) : assert(key || value);
+    required this.matchLocation,
+    required this.matchIndex,
+  });
+}
+
+/// The location of the search match in a node.
+///
+/// Can be in the node's key or in the node's value.
+enum SearchMatchLocation {
+  key,
+  value,
 }

@@ -454,13 +454,11 @@ void main() {
         final expectedNode = store.displayNodes.elementAt(1);
         final firstMatch = store.searchResults.first;
         expect(firstMatch.node, expectedNode);
-        expect(firstMatch.key, isTrue);
-        expect(firstMatch.value, isFalse);
+        expect(firstMatch.matchLocation, SearchMatchLocation.key);
 
         final secondMatch = store.searchResults.elementAt(1);
         expect(secondMatch.node, expectedNode);
-        expect(secondMatch.key, isFalse);
-        expect(secondMatch.value, isTrue);
+        expect(secondMatch.matchLocation, SearchMatchLocation.value);
       });
 
       test('moves focus to next result', () {
@@ -560,6 +558,56 @@ void main() {
 
         expect(store.focusedSearchResultIndex, 0);
         verifyNever(listener.call);
+      });
+
+      test('search matches are correct', () {
+        final store = DataExplorerStore();
+        store.buildNodes(json.decode(testJson));
+
+        store.search('f');
+        expect(store.searchResults, hasLength(133));
+
+        store.focusNextSearchResult();
+        expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
+        expect(
+          store.focusedSearchResult.matchLocation,
+          SearchMatchLocation.key,
+        );
+
+        store.focusNextSearchResult();
+        expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
+        expect(
+          store.focusedSearchResult.matchLocation,
+          SearchMatchLocation.key,
+        );
+
+        store.focusNextSearchResult();
+        expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
+        expect(
+          store.focusedSearchResult.matchLocation,
+          SearchMatchLocation.key,
+        );
+
+        store.focusNextSearchResult();
+        expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
+        expect(
+          store.focusedSearchResult.matchLocation,
+          SearchMatchLocation.value,
+        );
+
+        store.focusNextSearchResult();
+        expect(store.focusedSearchResult.node, store.displayNodes.elementAt(1));
+        expect(
+          store.focusedSearchResult.matchLocation,
+          SearchMatchLocation.value,
+        );
+
+        store.focusNextSearchResult();
+        expect(store.focusedSearchResult.node, store.displayNodes.elementAt(2));
+        expect(
+          store.focusedSearchResult.matchLocation,
+          SearchMatchLocation.key,
+        );
       });
 
       group('expand parent nodes', () {

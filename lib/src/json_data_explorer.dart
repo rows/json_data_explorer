@@ -414,6 +414,24 @@ class _RootNodeWidget extends StatelessWidget {
     return propertyNameFormatter?.call(node.key) ?? '${node.key}:';
   }
 
+  /// Gets the index of the focused search match.
+  int? _getFocusedSearchMatchIndex(DataExplorerStore store) {
+    if (store.searchResults.isEmpty) {
+      return null;
+    }
+
+    if (store.focusedSearchResult.node != node) {
+      return null;
+    }
+
+    // Assert that it's the key and not the value of the node.
+    if (store.focusedSearchResult.matchLocation != SearchMatchLocation.key) {
+      return null;
+    }
+
+    return store.focusedSearchResult.matchIndex;
+  }
+
   @override
   Widget build(BuildContext context) {
     final showHighlightedText = context.select<DataExplorerStore, bool>(
@@ -429,20 +447,16 @@ class _RootNodeWidget extends StatelessWidget {
       return Text(text, style: attributeKeyStyle);
     }
 
-    final isKeySearchFocused = context.select<DataExplorerStore, bool>(
-      (store) => store.searchResults.isNotEmpty
-          ? store.focusedSearchResult.node == node &&
-              store.focusedSearchResult.key
-          : false,
-    );
+    final focusedSearchMatchIndex =
+        context.select<DataExplorerStore, int?>(_getFocusedSearchMatchIndex);
 
     return _HighlightedText(
       text: text,
       highlightedText: searchTerm,
       style: attributeKeyStyle,
-      highlightedStyle: isKeySearchFocused
-          ? theme.focusedKeySearchNodeHighlightTextStyle
-          : theme.keySearchHighlightTextStyle,
+      primaryMatchStyle: theme.focusedKeySearchNodeHighlightTextStyle,
+      secondaryMatchStyle: theme.keySearchHighlightTextStyle,
+      focusedSearchMatchIndex: focusedSearchMatchIndex,
     );
   }
 }
@@ -466,6 +480,24 @@ class _PropertyNodeWidget extends StatelessWidget {
     required this.focusedSearchHighlightStyle,
   }) : super(key: key);
 
+  /// Gets the index of the focused search match.
+  int? _getFocusedSearchMatchIndex(DataExplorerStore store) {
+    if (store.searchResults.isEmpty) {
+      return null;
+    }
+
+    if (store.focusedSearchResult.node != node) {
+      return null;
+    }
+
+    // Assert that it's the value and not the key of the node.
+    if (store.focusedSearchResult.matchLocation != SearchMatchLocation.value) {
+      return null;
+    }
+
+    return store.focusedSearchResult.matchIndex;
+  }
+
   @override
   Widget build(BuildContext context) {
     final showHighlightedText = context.select<DataExplorerStore, bool>(
@@ -478,20 +510,16 @@ class _PropertyNodeWidget extends StatelessWidget {
       return Text(text, style: style);
     }
 
-    final isValueSearchFocused = context.select<DataExplorerStore, bool>(
-      (store) => store.searchResults.isNotEmpty
-          ? store.focusedSearchResult.node == node &&
-              store.focusedSearchResult.value
-          : false,
-    );
+    final focusedSearchMatchIndex =
+        context.select<DataExplorerStore, int?>(_getFocusedSearchMatchIndex);
 
     return _HighlightedText(
       text: text,
       highlightedText: searchTerm,
       style: style,
-      highlightedStyle: isValueSearchFocused
-          ? focusedSearchHighlightStyle
-          : searchHighlightStyle,
+      primaryMatchStyle: focusedSearchHighlightStyle,
+      secondaryMatchStyle: searchHighlightStyle,
+      focusedSearchMatchIndex: focusedSearchMatchIndex,
     );
   }
 }
@@ -571,21 +599,34 @@ class _Indentation extends StatelessWidget {
 class _HighlightedText extends StatelessWidget {
   final String text;
   final String highlightedText;
+
+  // The default style when the text or part of it is not highlighted.
   final TextStyle style;
-  final TextStyle highlightedStyle;
+
+  // The style of the focused search match.
+  final TextStyle primaryMatchStyle;
+
+  // The style of the search match that is not focused.
+  final TextStyle secondaryMatchStyle;
+
+  // The index of the focused search match.
+  final int? focusedSearchMatchIndex;
 
   const _HighlightedText({
     Key? key,
     required this.text,
     required this.highlightedText,
     required this.style,
-    required this.highlightedStyle,
+    required this.primaryMatchStyle,
+    required this.secondaryMatchStyle,
+    required this.focusedSearchMatchIndex,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final lowerCaseText = text.toLowerCase();
     final lowerCaseQuery = highlightedText.toLowerCase();
+
     if (highlightedText.isEmpty || !lowerCaseText.contains(lowerCaseQuery)) {
       return Text(text, style: style);
     }
@@ -613,7 +654,9 @@ class _HighlightedText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: text.substring(index, index + highlightedText.length),
-          style: highlightedStyle,
+          style: index == focusedSearchMatchIndex
+              ? primaryMatchStyle
+              : secondaryMatchStyle,
         ),
       );
       start = index + highlightedText.length;
