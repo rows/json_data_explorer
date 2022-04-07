@@ -678,22 +678,10 @@ class DataExplorerStore extends ChangeNotifier {
 
   /// Finds all occurences of [searchTerm] in [victim] and retrieves all their
   /// indexes.
-  List<int> _getSearchTermMatchesIndexes(String victim) {
-    final matches = <int>[];
+  Iterable<int> _getSearchTermMatchesIndexes(String victim) {
+    final pattern = RegExp(searchTerm, caseSensitive: false);
 
-    var index = 0;
-
-    while (true) {
-      index = victim.indexOf(searchTerm, index);
-
-      if (index == -1) {
-        break;
-      }
-
-      matches.add(index);
-
-      index++;
-    }
+    final matches = pattern.allMatches(victim).map((match) => match.start);
 
     return matches;
   }
