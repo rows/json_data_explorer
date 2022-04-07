@@ -644,8 +644,7 @@ class DataExplorerStore extends ChangeNotifier {
 
   void _doSearch() {
     for (final node in _allNodes) {
-      final matchesIndexes =
-          _getSearchTermMatchesIndexes(node.key.toLowerCase());
+      final matchesIndexes = _getSearchTermMatchesIndexes(node.key);
 
       for (final matchIndex in matchesIndexes) {
         _searchResults.add(
@@ -659,7 +658,7 @@ class DataExplorerStore extends ChangeNotifier {
 
       if (!node.isRoot) {
         final matchesIndexes =
-            _getSearchTermMatchesIndexes(node.value.toString().toLowerCase());
+            _getSearchTermMatchesIndexes(node.value.toString());
 
         for (final matchIndex in matchesIndexes) {
           _searchResults.add(
