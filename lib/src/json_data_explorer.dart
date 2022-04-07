@@ -414,7 +414,8 @@ class _RootNodeWidget extends StatelessWidget {
     return propertyNameFormatter?.call(node.key) ?? '${node.key}:';
   }
 
-  int? _getSearchMatchIndex(DataExplorerStore store) {
+  /// Gets the index of the focused search match.
+  int? _getFocusedSearchMatchIndex(DataExplorerStore store) {
     if (store.searchResults.isEmpty) {
       return null;
     }
@@ -423,6 +424,7 @@ class _RootNodeWidget extends StatelessWidget {
       return null;
     }
 
+    // Assert that it's the key and not the value of the node.
     if (!store.focusedSearchResult.key) {
       return null;
     }
@@ -445,8 +447,8 @@ class _RootNodeWidget extends StatelessWidget {
       return Text(text, style: attributeKeyStyle);
     }
 
-    final matchIndex =
-        context.select<DataExplorerStore, int?>(_getSearchMatchIndex);
+    final focusedSearchMatchIndex =
+        context.select<DataExplorerStore, int?>(_getFocusedSearchMatchIndex);
 
     return _HighlightedText(
       text: text,
@@ -454,7 +456,7 @@ class _RootNodeWidget extends StatelessWidget {
       style: attributeKeyStyle,
       primaryMatchStyle: theme.focusedKeySearchNodeHighlightTextStyle,
       secondaryMatchStyle: theme.keySearchHighlightTextStyle,
-      matchIndex: matchIndex,
+      focusedSearchMatchIndex: focusedSearchMatchIndex,
     );
   }
 }
@@ -478,7 +480,8 @@ class _PropertyNodeWidget extends StatelessWidget {
     required this.focusedSearchHighlightStyle,
   }) : super(key: key);
 
-  int? _getSearchMatchIndex(DataExplorerStore store) {
+  /// Gets the index of the focused search match.
+  int? _getFocusedSearchMatchIndex(DataExplorerStore store) {
     if (store.searchResults.isEmpty) {
       return null;
     }
@@ -487,6 +490,7 @@ class _PropertyNodeWidget extends StatelessWidget {
       return null;
     }
 
+    // Assert that it's the value and not the key of the node.
     if (!store.focusedSearchResult.value) {
       return null;
     }
@@ -506,8 +510,8 @@ class _PropertyNodeWidget extends StatelessWidget {
       return Text(text, style: style);
     }
 
-    final matchIndex =
-        context.select<DataExplorerStore, int?>(_getSearchMatchIndex);
+    final focusedSearchMatchIndex =
+        context.select<DataExplorerStore, int?>(_getFocusedSearchMatchIndex);
 
     return _HighlightedText(
       text: text,
@@ -515,7 +519,7 @@ class _PropertyNodeWidget extends StatelessWidget {
       style: style,
       primaryMatchStyle: focusedSearchHighlightStyle,
       secondaryMatchStyle: searchHighlightStyle,
-      matchIndex: matchIndex,
+      focusedSearchMatchIndex: focusedSearchMatchIndex,
     );
   }
 }
@@ -595,10 +599,18 @@ class _Indentation extends StatelessWidget {
 class _HighlightedText extends StatelessWidget {
   final String text;
   final String highlightedText;
+
+  // The default style when the text or part of it is not highlighted.
   final TextStyle style;
+
+  // The style of the focused search match.
   final TextStyle primaryMatchStyle;
+
+  // The style of the search match that is not focused.
   final TextStyle secondaryMatchStyle;
-  final int? matchIndex;
+
+  // The index of the focused search match.
+  final int? focusedSearchMatchIndex;
 
   const _HighlightedText({
     Key? key,
@@ -607,7 +619,7 @@ class _HighlightedText extends StatelessWidget {
     required this.style,
     required this.primaryMatchStyle,
     required this.secondaryMatchStyle,
-    required this.matchIndex,
+    required this.focusedSearchMatchIndex,
   }) : super(key: key);
 
   @override
@@ -642,7 +654,9 @@ class _HighlightedText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: text.substring(index, index + highlightedText.length),
-          style: index == matchIndex ? primaryMatchStyle : secondaryMatchStyle,
+          style: index == focusedSearchMatchIndex
+              ? primaryMatchStyle
+              : secondaryMatchStyle,
         ),
       );
       start = index + highlightedText.length;
