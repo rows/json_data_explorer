@@ -644,17 +644,48 @@ class DataExplorerStore extends ChangeNotifier {
 
   void _doSearch() {
     for (final node in _allNodes) {
-      if (node.key.toLowerCase().contains(searchTerm)) {
-        _searchResults.add(SearchResult(node, key: true));
+      final matches = _getSearchTermMatches(node.key.toLowerCase());
+
+      for (final match in matches) {
+        _searchResults.add(SearchResult(node, key: true, match: match));
       }
+
       if (!node.isRoot) {
-        if (node.value.toString().toLowerCase().contains(searchTerm)) {
-          _searchResults.add(SearchResult(node, value: true));
+        final matches =
+            _getSearchTermMatches(node.value.toString().toLowerCase());
+
+        for (final match in matches) {
+          _searchResults.add(SearchResult(node, value: true, match: match));
         }
       }
     }
 
     notifyListeners();
+  }
+
+  List<SearchMatch> _getSearchTermMatches(String victim) {
+    final matches = <SearchMatch>[];
+
+    var index = 0;
+
+    while (true) {
+      index = victim.indexOf(searchTerm, index);
+
+      if (index == -1) {
+        break;
+      }
+
+      matches.add(
+        SearchMatch(
+          begin: index,
+          end: index + searchTerm.length - 1,
+        ),
+      );
+
+      index++;
+    }
+
+    return matches;
   }
 
   /// Expands all the parent nodes of each [SearchResult.node] in
@@ -687,10 +718,22 @@ class SearchResult {
   final NodeViewModelState node;
   final bool key;
   final bool value;
+  final SearchMatch match;
 
   const SearchResult(
     this.node, {
     this.key = false,
     this.value = false,
+    required this.match,
   }) : assert(key || value);
+}
+
+class SearchMatch {
+  final int begin;
+  final int end;
+
+  const SearchMatch({
+    required this.begin,
+    required this.end,
+  });
 }
