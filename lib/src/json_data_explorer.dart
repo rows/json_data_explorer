@@ -414,7 +414,7 @@ class _RootNodeWidget extends StatelessWidget {
     return propertyNameFormatter?.call(node.key) ?? '${node.key}:';
   }
 
-  SearchMatch? _getSearchMatch(DataExplorerStore store) {
+  int? _getSearchMatchIndex(DataExplorerStore store) {
     if (store.searchResults.isEmpty) {
       return null;
     }
@@ -427,7 +427,7 @@ class _RootNodeWidget extends StatelessWidget {
       return null;
     }
 
-    return store.focusedSearchResult.match;
+    return store.focusedSearchResult.matchIndex;
   }
 
   @override
@@ -445,8 +445,8 @@ class _RootNodeWidget extends StatelessWidget {
       return Text(text, style: attributeKeyStyle);
     }
 
-    final match =
-        context.select<DataExplorerStore, SearchMatch?>(_getSearchMatch);
+    final matchIndex =
+        context.select<DataExplorerStore, int?>(_getSearchMatchIndex);
 
     return _HighlightedText(
       text: text,
@@ -454,7 +454,7 @@ class _RootNodeWidget extends StatelessWidget {
       style: attributeKeyStyle,
       primaryMatchStyle: theme.focusedKeySearchNodeHighlightTextStyle,
       secondaryMatchStyle: theme.keySearchHighlightTextStyle,
-      match: match,
+      matchIndex: matchIndex,
     );
   }
 }
@@ -478,7 +478,7 @@ class _PropertyNodeWidget extends StatelessWidget {
     required this.focusedSearchHighlightStyle,
   }) : super(key: key);
 
-  SearchMatch? _getSearchMatch(DataExplorerStore store) {
+  int? _getSearchMatchIndex(DataExplorerStore store) {
     if (store.searchResults.isEmpty) {
       return null;
     }
@@ -491,7 +491,7 @@ class _PropertyNodeWidget extends StatelessWidget {
       return null;
     }
 
-    return store.focusedSearchResult.match;
+    return store.focusedSearchResult.matchIndex;
   }
 
   @override
@@ -506,8 +506,8 @@ class _PropertyNodeWidget extends StatelessWidget {
       return Text(text, style: style);
     }
 
-    final match =
-        context.select<DataExplorerStore, SearchMatch?>(_getSearchMatch);
+    final matchIndex =
+        context.select<DataExplorerStore, int?>(_getSearchMatchIndex);
 
     return _HighlightedText(
       text: text,
@@ -515,7 +515,7 @@ class _PropertyNodeWidget extends StatelessWidget {
       style: style,
       primaryMatchStyle: focusedSearchHighlightStyle,
       secondaryMatchStyle: searchHighlightStyle,
-      match: match,
+      matchIndex: matchIndex,
     );
   }
 }
@@ -598,7 +598,7 @@ class _HighlightedText extends StatelessWidget {
   final TextStyle style;
   final TextStyle primaryMatchStyle;
   final TextStyle secondaryMatchStyle;
-  final SearchMatch? match;
+  final int? matchIndex;
 
   const _HighlightedText({
     Key? key,
@@ -607,7 +607,7 @@ class _HighlightedText extends StatelessWidget {
     required this.style,
     required this.primaryMatchStyle,
     required this.secondaryMatchStyle,
-    required this.match,
+    required this.matchIndex,
   }) : super(key: key);
 
   @override
@@ -642,8 +642,7 @@ class _HighlightedText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: text.substring(index, index + highlightedText.length),
-          style:
-              index == match?.begin ? primaryMatchStyle : secondaryMatchStyle,
+          style: index == matchIndex ? primaryMatchStyle : secondaryMatchStyle,
         ),
       );
       start = index + highlightedText.length;

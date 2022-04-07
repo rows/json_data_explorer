@@ -644,18 +644,23 @@ class DataExplorerStore extends ChangeNotifier {
 
   void _doSearch() {
     for (final node in _allNodes) {
-      final matches = _getSearchTermMatches(node.key.toLowerCase());
+      final matchesIndexes =
+          _getSearchTermMatchesIndexes(node.key.toLowerCase());
 
-      for (final match in matches) {
-        _searchResults.add(SearchResult(node, key: true, match: match));
+      for (final matchIndex in matchesIndexes) {
+        _searchResults.add(
+          SearchResult(node, key: true, matchIndex: matchIndex),
+        );
       }
 
       if (!node.isRoot) {
-        final matches =
-            _getSearchTermMatches(node.value.toString().toLowerCase());
+        final matchesIndexes =
+            _getSearchTermMatchesIndexes(node.value.toString().toLowerCase());
 
-        for (final match in matches) {
-          _searchResults.add(SearchResult(node, value: true, match: match));
+        for (final matchIndex in matchesIndexes) {
+          _searchResults.add(
+            SearchResult(node, value: true, matchIndex: matchIndex),
+          );
         }
       }
     }
@@ -663,8 +668,10 @@ class DataExplorerStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<SearchMatch> _getSearchTermMatches(String victim) {
-    final matches = <SearchMatch>[];
+  /// Finds all occurences of [searchTerm] in [victim] and retrieves all their
+  /// indexes.
+  List<int> _getSearchTermMatchesIndexes(String victim) {
+    final matches = <int>[];
 
     var index = 0;
 
@@ -675,12 +682,7 @@ class DataExplorerStore extends ChangeNotifier {
         break;
       }
 
-      matches.add(
-        SearchMatch(
-          begin: index,
-          end: index + searchTerm.length - 1,
-        ),
-      );
+      matches.add(index);
 
       index++;
     }
@@ -718,22 +720,12 @@ class SearchResult {
   final NodeViewModelState node;
   final bool key;
   final bool value;
-  final SearchMatch match;
+  final int matchIndex;
 
   const SearchResult(
     this.node, {
     this.key = false,
     this.value = false,
-    required this.match,
+    required this.matchIndex,
   }) : assert(key || value);
-}
-
-class SearchMatch {
-  final int begin;
-  final int end;
-
-  const SearchMatch({
-    required this.begin,
-    required this.end,
-  });
 }
