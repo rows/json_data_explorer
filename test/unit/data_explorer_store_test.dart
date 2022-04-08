@@ -675,6 +675,25 @@ void main() {
       expect(store.focusedSearchResult, store.searchResults.first);
     });
 
+    test(
+        '''focus last result when first result is focused, loop is true and user 
+        goes to previous search result''', () {
+      final store = DataExplorerStore();
+      store.buildNodes(json.decode(testJson));
+
+      store.search('firstClassField.innerClassField');
+      expect(store.focusedSearchResultIndex, 0);
+      expect(store.focusedSearchResult, store.searchResults.first);
+
+      store.focusPreviousSearchResult();
+      expect(store.focusedSearchResultIndex, 0);
+      expect(store.focusedSearchResult, store.searchResults.first);
+
+      store.focusPreviousSearchResult(loop: true);
+      expect(store.focusedSearchResultIndex, 1);
+      expect(store.focusedSearchResult, store.searchResults.elementAt(1));
+    });
+
     test('parent node of each node is correct', () {
       final store = DataExplorerStore();
       store.buildNodes(json.decode(testJson));

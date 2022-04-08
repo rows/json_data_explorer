@@ -606,9 +606,16 @@ class DataExplorerStore extends ChangeNotifier {
   ///
   /// See also:
   /// * [focusNextSearchResult]
-  void focusPreviousSearchResult() {
-    if (_searchResults.isNotEmpty && _focusedSearchResultIndex > 0) {
+  void focusPreviousSearchResult({bool loop = false}) {
+    if (searchResults.isEmpty) {
+      return;
+    }
+
+    if (_focusedSearchResultIndex > 0) {
       _focusedSearchResultIndex -= 1;
+      notifyListeners();
+    } else if (loop) {
+      _focusedSearchResultIndex = _searchResults.length - 1;
       notifyListeners();
     }
   }
