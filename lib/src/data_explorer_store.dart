@@ -604,6 +604,10 @@ class DataExplorerStore extends ChangeNotifier {
   ///
   /// Does nothing if there are no results or the first node is already focused.
   ///
+  /// If [loop] is `true` and the current focused search result is the first
+  /// element of [searchResults], the last element of [searchResults] is
+  /// focused.
+  ///
   /// See also:
   /// * [focusNextSearchResult]
   void focusPreviousSearchResult({bool loop = false}) {
