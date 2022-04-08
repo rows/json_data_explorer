@@ -137,6 +137,9 @@ class JsonDataExplorer extends StatelessWidget {
   /// Sets the spacing between each list item.
   final double itemSpacing;
 
+  /// Sets the scroll physics of the list.
+  final ScrollPhysics? physics;
+
   const JsonDataExplorer({
     Key? key,
     required this.nodes,
@@ -150,6 +153,7 @@ class JsonDataExplorer extends StatelessWidget {
     this.valueFormatter,
     this.valueStyleBuilder,
     this.itemSpacing = 2,
+    this.physics,
     DataExplorerTheme? theme,
   })  : theme = theme ?? DataExplorerTheme.defaultTheme,
         super(key: key);
@@ -182,6 +186,7 @@ class JsonDataExplorer extends StatelessWidget {
             theme: theme,
           ),
         ),
+        physics: physics,
       );
 }
 
