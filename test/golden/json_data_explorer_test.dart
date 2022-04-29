@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_private_typedef_functions
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,269 +13,232 @@ import 'test_data.dart';
 typedef _NodeBuilder = Widget Function(int treeDepth, DataExplorerTheme theme);
 
 void main() {
-  testGoldens('Json attribute', (tester) async {
-    final dynamic jsonObject = json.decode(nobelPrizesJson);
+  late final dynamic jsonObject;
 
-    final node = NodeViewModelState.fromProperty(
-      treeDepth: 0,
-      key: 'property',
-      value: 'value',
-      parent: null,
+  setUpAll(() {
+    jsonObject = json.decode(nobelPrizesJson);
+  });
+
+  testGoldens('Customization', (tester) async {
+    Widget buildWidget({
+      Key? key,
+      bool collapseAll = false,
+      void Function(DataExplorerStore store)? onStoreCreated,
+      DataExplorerTheme? theme,
+      NodeBuilder? rootInformationBuilder,
+      NodeBuilder? collapsableToggleBuilder,
+      NodeBuilder? trailingBuilder,
+      Formatter? rootNameFormatter,
+      Formatter? propertyNameFormatter,
+      Formatter? valueFormatter,
+      StyleBuilder? valueStyleBuilder,
+      double itemSpacing = 2,
+    }) =>
+        SizedBox(
+          height: 200,
+          child: ChangeNotifierProvider(
+            create: (context) {
+              final store = DataExplorerStore()
+                ..buildNodes(
+                  jsonObject,
+                  areAllCollapsed: collapseAll,
+                );
+              onStoreCreated?.call(store);
+              return store;
+            },
+            child: Consumer<DataExplorerStore>(
+              builder: (context, state, child) => JsonDataExplorer(
+                key: key,
+                nodes: state.displayNodes,
+                theme: theme,
+                rootInformationBuilder: rootInformationBuilder,
+                collapsableToggleBuilder: collapsableToggleBuilder,
+                trailingBuilder: trailingBuilder,
+                rootNameFormatter: rootNameFormatter,
+                propertyNameFormatter: propertyNameFormatter,
+                valueFormatter: valueFormatter,
+                valueStyleBuilder: valueStyleBuilder,
+                itemSpacing: itemSpacing,
+              ),
+            ),
+          ),
+        );
+
+    final builder = GoldenBuilder.grid(
+      columns: 4,
+      bgColor: Colors.white,
+      widthToHeightRatio: 1,
+    )
+      ..addScenario('Default', buildWidget())
+      ..addScenario(
+        'Expand',
+        buildWidget(
+          collapseAll: true,
+          onStoreCreated: (store) => store.expandNode(store.displayNodes.first),
+        ),
+      )
+      ..addScenario(
+        'Root information',
+        buildWidget(
+          rootInformationBuilder: (context, node) => DecoratedBox(
+            decoration: const BoxDecoration(
+              color: Color(0x80E1E1E1),
+              borderRadius: BorderRadius.all(Radius.circular(2)),
+            ),
+            child: Text(
+              node.isClass
+                  ? '{${node.childrenCount}}'
+                  : '[${node.childrenCount}]',
+            ),
+          ),
+        ),
+      )
+      ..addScenario(
+        'Collapsable toggle',
+        buildWidget(
+          collapseAll: true,
+          onStoreCreated: (store) => store.expandNode(store.displayNodes.first),
+          collapsableToggleBuilder: (context, node) => node.isCollapsed
+              ? const Icon(Icons.keyboard_arrow_up)
+              : const Icon(Icons.keyboard_arrow_down),
+        ),
+      )
+      ..addScenario(
+        'Trailing builder',
+        buildWidget(
+          trailingBuilder: (context, node) => const Icon(
+            Icons.info_outline,
+            size: 18,
+            color: Colors.black26,
+          ),
+        ),
+      )
+      ..addScenario(
+        'Name formatters',
+        buildWidget(
+          rootNameFormatter: (dynamic name) => '$name',
+          propertyNameFormatter: (dynamic name) => '$name =',
+          valueFormatter: (dynamic value) => '"$value"',
+        ),
+      )
+      ..addScenario(
+        'Value style builder',
+        buildWidget(
+          valueStyleBuilder: (dynamic value, style) {
+            final isInt = int.tryParse(value.toString());
+            return PropertyOverrides(
+              style: isInt != null
+                  ? style.copyWith(
+                      color: Colors.blue,
+                    )
+                  : style,
+            );
+          },
+        ),
+      )
+      ..addScenario('Item Spacing', buildWidget(itemSpacing: 10));
+
+    await tester.pumpWidgetBuilder(
+      builder.build(),
+      surfaceSize: const Size(1200, 600),
+    );
+    await tester.pumpAndSettle();
+    await screenMatchesGolden(tester, 'data_explorer/customization');
+  });
+
+  testGoldens('Interaction', (tester) async {
+    Widget buildWidget({
+      Key? key,
+      bool collapseAll = false,
+    }) =>
+        ChangeNotifierProvider(
+          create: (context) => DataExplorerStore()
+            ..buildNodes(
+              jsonObject,
+              areAllCollapsed: collapseAll,
+            ),
+          child: Consumer<DataExplorerStore>(
+            builder: (context, state, child) => SizedBox(
+              height: 400,
+              child: JsonDataExplorer(
+                key: key,
+                nodes: state.displayNodes,
+              ),
+            ),
+          ),
+        );
+
+    const expandNodeKey = Key('expandNodeKey');
+    const mouseHoverKey = Key('mouseHoverKey');
+    const collapseNodeKey = Key('collapseNodeKey');
+    final builder = GoldenBuilder.grid(
+      columns: 4,
+      bgColor: Colors.white,
+      widthToHeightRatio: 0.5,
+    )
+      ..addScenario('All collapsed', buildWidget(collapseAll: true))
+      ..addScenario(
+        'Expand',
+        buildWidget(
+          key: expandNodeKey,
+          collapseAll: true,
+        ),
+      )
+      ..addScenario(
+        'Collapse node',
+        buildWidget(
+          key: collapseNodeKey,
+        ),
+      )
+      ..addScenario(
+        'Mouse hover',
+        buildWidget(
+          key: mouseHoverKey,
+        ),
+      );
+    await tester.pumpWidgetBuilder(
+      builder.build(),
+      surfaceSize: const Size(1500, 400),
     );
 
-    final widget = ChangeNotifierProvider(
-      create: (context) => DataExplorerStore()..buildNodes(jsonObject),
-      child: Consumer<DataExplorerStore>(
-        builder: (context, state, child) => JsonAttribute(
-          node: node,
-          theme: DataExplorerTheme.defaultTheme,
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(expandNodeKey),
+        matching: find.text(
+          'prizes:',
+          findRichText: true,
         ),
       ),
     );
 
-    final builder = GoldenBuilder.column(bgColor: Colors.white)
-      ..addScenario('Default font size', widget)
-      ..addTextScaleScenario('Large font size', widget, textScaleFactor: 2.0)
-      ..addTextScaleScenario('Largest font', widget, textScaleFactor: 3.0);
-
-    await tester.pumpWidgetBuilder(builder.build());
-    await screenMatchesGolden(tester, 'json_attribute');
-  });
-
-  group('Search', () {
-    const _searchTestJson = '''
-    {
-      "property": "property value",
-      "anotherProperty": "another property value"
-    }
-    ''';
-
-    testGoldens('Highlight', (tester) async {
-      final dynamic jsonObject = json.decode(_searchTestJson);
-      Widget buildWidget({
-        required String searchTerm,
-        Function(DataExplorerStore store)? onStoreCreate,
-        DataExplorerTheme? theme,
-      }) {
-        return ChangeNotifierProvider(
-          create: (context) {
-            final store = DataExplorerStore()
-              ..buildNodes(jsonObject)
-              ..search(searchTerm);
-            onStoreCreate?.call(store);
-            return store;
-          },
-          child: Consumer<DataExplorerStore>(
-            builder: (context, state, child) => JsonAttribute(
-              node: state.displayNodes.last,
-              theme: theme ?? DataExplorerTheme.defaultTheme,
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byKey(collapseNodeKey),
+            matching: find.text(
+              'laureates:',
+              findRichText: true,
             ),
-          ),
-        );
-      }
+          )
+          .first,
+    );
 
-      final customTheme = DataExplorerTheme(
-          keySearchHighlightTextStyle: const TextStyle(
-            fontSize: 18,
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            backgroundColor: Colors.green,
-          ),
-          valueSearchHighlightTextStyle: const TextStyle(
-            fontSize: 18,
-            color: Colors.black,
-            backgroundColor: Colors.purpleAccent,
-          ),
-          focusedKeySearchHighlightTextStyle: const TextStyle(
-            fontSize: 18,
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            backgroundColor: Colors.black,
-          ),
-          focusedValueSearchHighlightTextStyle: const TextStyle(
-            fontSize: 18,
-            color: Colors.grey,
-            fontWeight: FontWeight.bold,
-            backgroundColor: Colors.red,
-          ));
+    final gesture = await tester.createGesture(
+      kind: PointerDeviceKind.mouse,
+    );
+    await gesture.addPointer(location: Offset.zero);
+    addTearDown(gesture.removePointer);
+    await tester.pump();
+    final finder = find.descendant(
+      of: find.byKey(mouseHoverKey),
+      matching: find.text(
+        'laureates:',
+        findRichText: true,
+      ),
+    );
+    await gesture.moveTo(tester.getCenter(finder.first));
+    await tester.pumpAndSettle();
 
-      final builder = GoldenBuilder.column(bgColor: Colors.white)
-        ..addScenario(
-          'highlight',
-          buildWidget(
-            searchTerm: 'property',
-          ),
-        )
-        ..addScenario(
-          'property focused highlight',
-          buildWidget(
-            searchTerm: 'property',
-            onStoreCreate: (store) => store
-              ..focusNextSearchResult()
-              ..focusNextSearchResult(),
-          ),
-        )
-        ..addScenario(
-          'value focused highlight',
-          buildWidget(
-            searchTerm: 'property',
-            onStoreCreate: (store) => store
-              ..focusNextSearchResult()
-              ..focusNextSearchResult()
-              ..focusNextSearchResult(),
-          ),
-        )
-        ..addScenario(
-          'custom theme highlight',
-          buildWidget(
-            searchTerm: 'property',
-            theme: customTheme,
-          ),
-        )
-        ..addScenario(
-          'custom theme property focused highlight',
-          buildWidget(
-            searchTerm: 'property',
-            theme: customTheme,
-            onStoreCreate: (store) => store
-              ..focusNextSearchResult()
-              ..focusNextSearchResult(),
-          ),
-        )
-        ..addScenario(
-          'custom theme value focused highlight',
-          buildWidget(
-            searchTerm: 'property',
-            theme: customTheme,
-            onStoreCreate: (store) => store
-              ..focusNextSearchResult()
-              ..focusNextSearchResult()
-              ..focusNextSearchResult(),
-          ),
-        );
-
-      await tester.pumpWidgetBuilder(
-        builder.build(),
-        surfaceSize: const Size(400, 600),
-      );
-      await screenMatchesGolden(tester, 'search');
-    });
-  });
-
-  group('Indentation', () {
-    Future testIndentationGuidelines(
-      WidgetTester tester, {
-      required _NodeBuilder nodeBuilder,
-      required String goldenName,
-    }) async {
-      final builder = GoldenBuilder.column(bgColor: Colors.white)
-        ..addScenario(
-          'no indentation',
-          nodeBuilder(0, DataExplorerTheme.defaultTheme),
-        )
-        ..addScenario(
-          '1 step',
-          nodeBuilder(1, DataExplorerTheme.defaultTheme),
-        )
-        ..addScenario(
-          '2 steps',
-          nodeBuilder(2, DataExplorerTheme.defaultTheme),
-        )
-        ..addScenario(
-          '3 steps',
-          nodeBuilder(3, DataExplorerTheme.defaultTheme),
-        )
-        ..addScenario(
-          '4 steps',
-          nodeBuilder(4, DataExplorerTheme.defaultTheme),
-        )
-        ..addScenario(
-          'custom color',
-          nodeBuilder(
-            4,
-            DataExplorerTheme(
-              indentationLineColor: Colors.blue,
-            ),
-          ),
-        )
-        ..addScenario(
-          'no guidelines',
-          nodeBuilder(
-            4,
-            DataExplorerTheme(
-              indentationLineColor: Colors.transparent,
-            ),
-          ),
-        );
-
-      await tester.pumpWidgetBuilder(
-        builder.build(),
-        wrapper: (widget) => materialAppWrapper()(
-          ChangeNotifierProvider(
-            create: (context) => DataExplorerStore(),
-            child: Consumer<DataExplorerStore>(
-              builder: (context, state, child) => widget,
-            ),
-          ),
-        ),
-        surfaceSize: const Size(200, 600),
-      );
-      await screenMatchesGolden(tester, 'indentation/$goldenName');
-    }
-
-    testGoldens('Property indentation guidelines', (tester) async {
-      await testIndentationGuidelines(
-        tester,
-        goldenName: 'property_indentation',
-        nodeBuilder: (treeDepth, theme) {
-          final node = NodeViewModelState.fromProperty(
-            treeDepth: treeDepth,
-            key: 'property',
-            value: 'value',
-            parent: null,
-          );
-          return JsonAttribute(
-            node: node,
-            theme: theme,
-          );
-        },
-      );
-    });
-
-    testGoldens('Property indentation guidelines', (tester) async {
-      await testIndentationGuidelines(
-        tester,
-        goldenName: 'class_indentation',
-        nodeBuilder: (treeDepth, theme) {
-          final node = NodeViewModelState.fromClass(
-            treeDepth: treeDepth,
-            key: 'class',
-            parent: null,
-          )..value = <String, NodeViewModelState>{};
-          return JsonAttribute(
-            node: node,
-            theme: theme,
-          );
-        },
-      );
-    });
-
-    testGoldens('Array indentation guidelines', (tester) async {
-      await testIndentationGuidelines(
-        tester,
-        goldenName: 'array_indentation',
-        nodeBuilder: (treeDepth, theme) {
-          final node = NodeViewModelState.fromArray(
-            treeDepth: treeDepth,
-            key: 'array',
-            parent: null,
-          )..value = <dynamic>[];
-          return JsonAttribute(
-            node: node,
-            theme: theme,
-          );
-        },
-      );
-    });
+    await screenMatchesGolden(tester, 'data_explorer/interaction');
   });
 }
