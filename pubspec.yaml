@@ -1,8 +1,9 @@
 name: json_data_explorer
-description: A Flutter package to display json objects.
-version: 0.0.1
-repository: https://github.com/rows/json-data-explorer
-homepage: https://github.com/rows/json-data-explorer
+description: A highly customizable widget to render and interact with JSON objects.
+version: 0.1.0
+repository: https://github.com/rows/json_data_explorer
+homepage: https://github.com/rows/json_data_explorer
+issue_tracker: https://github.com/rows/json_data_explorer/issues
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
