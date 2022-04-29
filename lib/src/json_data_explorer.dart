@@ -173,7 +173,7 @@ class JsonDataExplorer extends StatelessWidget {
             ),
             child: child,
           ),
-          child: _JsonAttribute(
+          child: JsonAttribute(
             node: nodes.elementAt(index),
             rootInformationBuilder: rootInformationBuilder,
             collapsableToggleBuilder: collapsableToggleBuilder,
@@ -190,7 +190,7 @@ class JsonDataExplorer extends StatelessWidget {
       );
 }
 
-class _JsonAttribute extends StatelessWidget {
+class JsonAttribute extends StatelessWidget {
   /// Node to be displayed.
   final NodeViewModelState node;
 
@@ -240,7 +240,7 @@ class _JsonAttribute extends StatelessWidget {
   /// Theme used to render this widget.
   final DataExplorerTheme theme;
 
-  const _JsonAttribute({
+  const JsonAttribute({
     Key? key,
     required this.node,
     required this.theme,
@@ -667,8 +667,8 @@ class _HighlightedText extends StatelessWidget {
       start = index + highlightedText.length;
     }
 
-    return RichText(
-      text: TextSpan(
+    return Text.rich(
+      TextSpan(
         children: spans,
       ),
     );

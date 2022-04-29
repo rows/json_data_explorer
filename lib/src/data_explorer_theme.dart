@@ -62,7 +62,7 @@ class DataExplorerTheme {
             (propertyKeyTextStyle ??
                 DataExplorerTheme.defaultTheme.rootKeyTextStyle),
         propertyKeyTextStyle = propertyKeyTextStyle ??
-            DataExplorerTheme.defaultTheme.rootKeyTextStyle,
+            DataExplorerTheme.defaultTheme.propertyKeyTextStyle,
         keySearchHighlightTextStyle = keySearchHighlightTextStyle ??
             DataExplorerTheme.defaultTheme.keySearchHighlightTextStyle,
         valueTextStyle =
@@ -135,7 +135,7 @@ class DataExplorerTheme {
       backgroundColor: Colors.lightGreen,
     ),
     indentationLineColor: Colors.grey,
-    highlightColor: Colors.blue,
+    highlightColor: Colors.black12,
     indentationPadding: 8.0,
     propertyIndentationPaddingFactor: 4,
   );
