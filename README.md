@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a title="Pub" href="https://pub.dev/packages/json-data-explorer" ><img src="https://img.shields.io/pub/v/json-data-explorer.svg?style=popout" /></a>
+  <a title="Pub" href="https://pub.dev/packages/json_data_explorer" ><img src="https://img.shields.io/pub/v/json_data_explorer.svg?style=popout" /></a>
   <a title="Rows lint" href="https://pub.dev/packages/rows_lint" ><img src="https://img.shields.io/badge/Styled%20by-Rows-754F6C?style=popout" /></a>
 </p>
 
