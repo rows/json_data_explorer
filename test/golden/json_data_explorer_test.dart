@@ -10,8 +10,6 @@ import 'package:provider/provider.dart';
 
 import 'test_data.dart';
 
-typedef _NodeBuilder = Widget Function(int treeDepth, DataExplorerTheme theme);
-
 void main() {
   late final dynamic jsonObject;
 

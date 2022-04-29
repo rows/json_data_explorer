@@ -74,29 +74,30 @@ void main() {
       }
 
       final customTheme = DataExplorerTheme(
-          keySearchHighlightTextStyle: const TextStyle(
-            fontSize: 18,
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            backgroundColor: Colors.green,
-          ),
-          valueSearchHighlightTextStyle: const TextStyle(
-            fontSize: 18,
-            color: Colors.black,
-            backgroundColor: Colors.purpleAccent,
-          ),
-          focusedKeySearchHighlightTextStyle: const TextStyle(
-            fontSize: 18,
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            backgroundColor: Colors.black,
-          ),
-          focusedValueSearchHighlightTextStyle: const TextStyle(
-            fontSize: 18,
-            color: Colors.grey,
-            fontWeight: FontWeight.bold,
-            backgroundColor: Colors.red,
-          ));
+        keySearchHighlightTextStyle: const TextStyle(
+          fontSize: 18,
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+          backgroundColor: Colors.green,
+        ),
+        valueSearchHighlightTextStyle: const TextStyle(
+          fontSize: 18,
+          color: Colors.black,
+          backgroundColor: Colors.purpleAccent,
+        ),
+        focusedKeySearchHighlightTextStyle: const TextStyle(
+          fontSize: 18,
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          backgroundColor: Colors.black,
+        ),
+        focusedValueSearchHighlightTextStyle: const TextStyle(
+          fontSize: 18,
+          color: Colors.grey,
+          fontWeight: FontWeight.bold,
+          backgroundColor: Colors.red,
+        ),
+      );
 
       final builder = GoldenBuilder.column(bgColor: Colors.white)
         ..addScenario(

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
@@ -14,12 +13,14 @@ void main() {
     final dynamic jsonObject = json.decode(nobelPrizesJson);
 
     final builder = DeviceBuilder()
-      ..overrideDevicesForAllScenarios(devices: [
-        Device.phone,
-        Device.iphone11,
-        Device.tabletPortrait,
-        Device.tabletLandscape,
-      ])
+      ..overrideDevicesForAllScenarios(
+        devices: [
+          Device.phone,
+          Device.iphone11,
+          Device.tabletPortrait,
+          Device.tabletLandscape,
+        ],
+      )
       ..addScenario(
         name: 'default theme',
         widget: ChangeNotifierProvider(
