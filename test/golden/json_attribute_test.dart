@@ -19,6 +19,7 @@ void main() {
       treeDepth: 0,
       key: 'property',
       value: 'value',
+      parent: null,
     );
 
     final widget = ChangeNotifierProvider(
@@ -230,6 +231,7 @@ void main() {
             treeDepth: treeDepth,
             key: 'property',
             value: 'value',
+            parent: null,
           );
           return JsonAttribute(
             node: node,
@@ -247,8 +249,8 @@ void main() {
           final node = NodeViewModelState.fromClass(
             treeDepth: treeDepth,
             key: 'class',
-            value: {},
-          );
+            parent: null,
+          )..value = <String, NodeViewModelState>{};
           return JsonAttribute(
             node: node,
             theme: theme,
@@ -265,8 +267,8 @@ void main() {
           final node = NodeViewModelState.fromArray(
             treeDepth: treeDepth,
             key: 'array',
-            value: <dynamic>[],
-          );
+            parent: null,
+          )..value = <dynamic>[];
           return JsonAttribute(
             node: node,
             theme: theme,
