@@ -293,3 +293,20 @@ Row(
   ],
 ),
 ```
+
+### Custom scroll widget
+
+It is possible to implement your own scrolling by using the `JsonAttribute` 
+widget to display each node. 
+
+A simple `ListView.builder` looks like this:
+
+```dart
+ListView.builder(
+  itemCount: state.displayNodes.length,
+  itemBuilder: (context, index) => JsonAttribute(
+    node: state.displayNodes.elementAt(index),
+    theme: DataExplorerTheme.defaultTheme,
+  ),
+),
+```
