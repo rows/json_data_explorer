@@ -1,6 +1,6 @@
 name: json_data_explorer
 description: A highly customizable widget to render and interact with JSON objects.
-version: 0.1.0
+version: 0.2.0
 repository: https://github.com/rows/json_data_explorer
 homepage: https://github.com/rows/json_data_explorer
 issue_tracker: https://github.com/rows/json_data_explorer/issues
@@ -12,13 +12,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  scrollable_positioned_list: ^0.2.3
-  provider: ^6.0.2
+  scrollable_positioned_list: ^0.3.2
+  provider: ^6.0.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  rows_lint: 0.1.0
+  rows_lint: ^0.1.1
   mocktail: ^0.3.0
   golden_toolkit: ^0.13.0
 
