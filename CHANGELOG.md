@@ -1,3 +1,8 @@
+## 0.3.0
+
+* Upgrade `golden_toolkit` to 0.15.0
+* Upgrade example dependencies
+
 ## 0.2.0
 
 * Upgrade `scrollable_positioned_list` to 0.3.2
