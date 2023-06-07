@@ -183,7 +183,7 @@ An example is adding interaction to values that contains links:
 ```dart
 JsonDataExplorer(
   nodes: state.displayNodes,
-  valueStyleBuilder: (value, style) {
+  valueStyleBuilder: (node, value, style) {
     final isUrl = _valueIsUrl(value);
     return PropertyOverrides(
       style: isUrl
@@ -203,7 +203,7 @@ value types:
 ```dart
 JsonDataExplorer(
   nodes: state.displayNodes,
-  valueStyleBuilder: (value, style) {
+  valueStyleBuilder: (node, value, style) {
     if (value is num) {
       return PropertyOverrides(
         style: style.copyWith(

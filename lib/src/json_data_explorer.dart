@@ -23,16 +23,24 @@ typedef Formatter = String Function(dynamic value);
 /// See also:
 /// * [PropertyStyle]
 typedef StyleBuilder = PropertyOverrides Function(
+  NodeViewModelState node,
   dynamic value,
   TextStyle style,
 );
 
 /// Holds information about a property value style and interaction.
 class PropertyOverrides {
-  final TextStyle style;
+  final TextStyle? style;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final MouseCursor? cursor;
 
-  const PropertyOverrides({required this.style, this.onTap});
+  const PropertyOverrides({
+    this.style,
+    this.onTap,
+    this.onLongPress,
+    this.cursor,
+  });
 }
 
 /// A widget to display a list of Json nodes.
@@ -263,15 +271,18 @@ class JsonAttribute extends StatelessWidget {
 
     final valueStyle = valueStyleBuilder != null
         ? valueStyleBuilder!.call(
+            node,
             node.value,
             theme.valueTextStyle,
           )
-        : PropertyOverrides(style: theme.valueTextStyle);
+        : const PropertyOverrides();
 
     final hasInteraction = node.isRoot || valueStyle.onTap != null;
 
     return MouseRegion(
-      cursor: hasInteraction ? SystemMouseCursors.click : MouseCursor.defer,
+      cursor: valueStyle.cursor != null
+          ? valueStyle.cursor!
+          : (hasInteraction ? SystemMouseCursors.click : MouseCursor.defer),
       onEnter: (event) {
         node.highlight();
         node.focus();
@@ -291,6 +302,7 @@ class JsonAttribute extends StatelessWidget {
                 }
               }
             : null,
+        onLongPress: valueStyle.onLongPress,
         child: AnimatedBuilder(
           animation: node,
 
@@ -341,7 +353,7 @@ class JsonAttribute extends StatelessWidget {
                             node: node,
                             searchTerm: searchTerm,
                             valueFormatter: valueFormatter,
-                            style: valueStyle.style,
+                            style: valueStyle.style ?? theme.valueTextStyle,
                             searchHighlightStyle:
                                 theme.valueSearchHighlightTextStyle,
                             focusedSearchHighlightStyle:

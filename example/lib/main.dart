@@ -258,7 +258,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
 
                     /// Dynamically changes the property value style and
                     /// interaction when an URL is detected.
-                    valueStyleBuilder: (dynamic value, style) {
+                    valueStyleBuilder: (node, dynamic value, style) {
                       final isUrl = _valueIsUrl(value);
                       return PropertyOverrides(
                         style: isUrl
@@ -267,6 +267,9 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                               )
                             : style,
                         onTap: isUrl ? () => _launchUrl(value as String) : null,
+                        onLongPress: () {
+                          print('onLongPress: ${node.key}: $value');
+                        },
                       );
                     },
 

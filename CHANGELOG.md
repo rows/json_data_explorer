@@ -1,5 +1,8 @@
 ## 0.3.0
 
+* BREAKING: `valueStyleBuilder` now takes node in addition to value
+* `style` in `PropertyOverrides` is now optional
+* `PropertyOverrides` can optionally specify `onLongPress` and a mouse `cursor`
 * Upgrade `golden_toolkit` to 0.15.0
 * Upgrade example dependencies
 

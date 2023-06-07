@@ -122,7 +122,7 @@ void main() {
       ..addScenario(
         'Value style builder',
         buildWidget(
-          valueStyleBuilder: (dynamic value, style) {
+          valueStyleBuilder: (node, dynamic value, style) {
             final isInt = int.tryParse(value.toString());
             return PropertyOverrides(
               style: isInt != null
