@@ -267,6 +267,9 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                               )
                             : style,
                         onTap: isUrl ? () => _launchUrl(value as String) : null,
+                        onSecondaryTap: () {
+                          print('onSecondaryTap: ${node.key}: $value');
+                        },
                         onLongPress: () {
                           print('onLongPress: ${node.key}: $value');
                         },

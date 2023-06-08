@@ -32,12 +32,14 @@ typedef StyleBuilder = PropertyOverrides Function(
 class PropertyOverrides {
   final TextStyle? style;
   final VoidCallback? onTap;
+  final VoidCallback? onSecondaryTap;
   final VoidCallback? onLongPress;
   final MouseCursor? cursor;
 
   const PropertyOverrides({
     this.style,
     this.onTap,
+    this.onSecondaryTap,
     this.onLongPress,
     this.cursor,
   });
@@ -303,6 +305,7 @@ class JsonAttribute extends StatelessWidget {
               }
             : null,
         onLongPress: valueStyle.onLongPress,
+        onSecondaryTap: valueStyle.onSecondaryTap,
         child: AnimatedBuilder(
           animation: node,
 
