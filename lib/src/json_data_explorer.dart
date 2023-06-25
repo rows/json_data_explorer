@@ -470,9 +470,9 @@ class _RootNodeWidget extends StatelessWidget {
     final focusedSearchMatchIndex =
         context.select<DataExplorerStore, int?>(_getFocusedSearchMatchIndex);
 
-    return _HighlightedText(
+    return HighlightedText(
       text: text,
-      highlightedText: searchTerm,
+      highlightedRegExp: searchTerm,
       style: attributeKeyStyle,
       primaryMatchStyle: theme.focusedKeySearchNodeHighlightTextStyle,
       secondaryMatchStyle: theme.keySearchHighlightTextStyle,
@@ -533,9 +533,9 @@ class _PropertyNodeWidget extends StatelessWidget {
     final focusedSearchMatchIndex =
         context.select<DataExplorerStore, int?>(_getFocusedSearchMatchIndex);
 
-    return _HighlightedText(
+    return HighlightedText(
       text: text,
-      highlightedText: searchTerm,
+      highlightedRegExp: searchTerm,
       style: style,
       primaryMatchStyle: focusedSearchHighlightStyle,
       secondaryMatchStyle: searchHighlightStyle,
@@ -614,11 +614,12 @@ class _Indentation extends StatelessWidget {
   }
 }
 
-/// Highlights found occurrences of [highlightedText] with [highlightedStyle]
+/// Highlights found occurrences of [highlightedRegExp] with [highlightedStyle]
 /// in [text].
-class _HighlightedText extends StatelessWidget {
+class HighlightedText extends StatelessWidget {
   final String text;
-  final String highlightedText;
+  final String highlightedRegExp;
+  final bool caseSensitive;
 
   // The default style when the text or part of it is not highlighted.
   final TextStyle style;
@@ -632,10 +633,11 @@ class _HighlightedText extends StatelessWidget {
   // The index of the focused search match.
   final int? focusedSearchMatchIndex;
 
-  const _HighlightedText({
+  const HighlightedText({
     Key? key,
     required this.text,
-    required this.highlightedText,
+    required this.highlightedRegExp,
+    this.caseSensitive = false,
     required this.style,
     required this.primaryMatchStyle,
     required this.secondaryMatchStyle,
@@ -644,19 +646,18 @@ class _HighlightedText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lowerCaseText = text.toLowerCase();
-    final lowerCaseQuery = highlightedText.toLowerCase();
-
-    if (highlightedText.isEmpty || !lowerCaseText.contains(lowerCaseQuery)) {
+    final matchingIndexes = highlightedRegExp.isEmpty
+        ? const Iterable<RegExpMatch>.empty()
+        : DataExplorerStore.getIndexesOfMatches(highlightedRegExp, text);
+    if (matchingIndexes.isEmpty) {
       return Text(text, style: style);
     }
 
     final spans = <TextSpan>[];
     var start = 0;
 
-    while (true) {
-      var index = lowerCaseText.indexOf(lowerCaseQuery, start);
-      index = index >= 0 ? index : text.length;
+    for (final m in matchingIndexes) {
+      final index = m.start;
 
       if (start != index) {
         spans.add(
@@ -673,13 +674,22 @@ class _HighlightedText extends StatelessWidget {
 
       spans.add(
         TextSpan(
-          text: text.substring(index, index + highlightedText.length),
+          text: text.substring(index, m.end),
           style: index == focusedSearchMatchIndex
               ? primaryMatchStyle
               : secondaryMatchStyle,
         ),
       );
-      start = index + highlightedText.length;
+      start = m.end;
+    }
+
+    if (start != text.length) {
+      spans.add(
+        TextSpan(
+          text: text.substring(start),
+          style: style,
+        ),
+      );
     }
 
     return Text.rich(
