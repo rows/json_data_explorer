@@ -361,6 +361,8 @@ class JsonAttribute extends StatelessWidget {
                                 theme.valueSearchHighlightTextStyle,
                             focusedSearchHighlightStyle:
                                 theme.focusedValueSearchHighlightTextStyle,
+                            highlightOnlyRegExpGroups:
+                                theme.highlightOnlyRegExpGroups,
                           ),
                         ),
                       ),
@@ -477,6 +479,7 @@ class _RootNodeWidget extends StatelessWidget {
       primaryMatchStyle: theme.focusedKeySearchNodeHighlightTextStyle,
       secondaryMatchStyle: theme.keySearchHighlightTextStyle,
       focusedSearchMatchIndex: focusedSearchMatchIndex,
+      highlightOnlyRegExpGroups: theme.highlightOnlyRegExpGroups,
     );
   }
 }
@@ -489,6 +492,7 @@ class _PropertyNodeWidget extends StatelessWidget {
   final TextStyle style;
   final TextStyle searchHighlightStyle;
   final TextStyle focusedSearchHighlightStyle;
+  final bool highlightOnlyRegExpGroups;
 
   const _PropertyNodeWidget({
     Key? key,
@@ -498,6 +502,7 @@ class _PropertyNodeWidget extends StatelessWidget {
     required this.style,
     required this.searchHighlightStyle,
     required this.focusedSearchHighlightStyle,
+    required this.highlightOnlyRegExpGroups,
   }) : super(key: key);
 
   /// Gets the index of the focused search match.
@@ -540,6 +545,7 @@ class _PropertyNodeWidget extends StatelessWidget {
       primaryMatchStyle: focusedSearchHighlightStyle,
       secondaryMatchStyle: searchHighlightStyle,
       focusedSearchMatchIndex: focusedSearchMatchIndex,
+      highlightOnlyRegExpGroups: highlightOnlyRegExpGroups,
     );
   }
 }
@@ -620,6 +626,7 @@ class HighlightedText extends StatelessWidget {
   final String text;
   final String highlightedRegExp;
   final bool caseSensitive;
+  final bool highlightOnlyRegExpGroups;
 
   // The default style when the text or part of it is not highlighted.
   final TextStyle style;
@@ -638,6 +645,7 @@ class HighlightedText extends StatelessWidget {
     required this.text,
     required this.highlightedRegExp,
     this.caseSensitive = false,
+    this.highlightOnlyRegExpGroups = false,
     required this.style,
     required this.primaryMatchStyle,
     required this.secondaryMatchStyle,
@@ -646,11 +654,45 @@ class HighlightedText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final matchingIndexes = highlightedRegExp.isEmpty
+    var matchingIndexes = highlightedRegExp.isEmpty
         ? const Iterable<RegExpMatch>.empty()
-        : DataExplorerStore.getIndexesOfMatches(highlightedRegExp, text);
+        : DataExplorerStore.getIndexesOfMatches(
+            highlightedRegExp,
+            text,
+            caseSensitive: caseSensitive,
+          );
     if (matchingIndexes.isEmpty) {
       return Text(text, style: style);
+    }
+
+    // It seems that positions of matching groups are not available for now
+    // (see https://github.com/dart-lang/sdk/issues/45486). We have to thus
+    // take a more complex approach if we only want to highlight group contents
+    // by first finding all matches, and then getting all of the group contents,
+    // and finding all matches anywhere in the string that could match these
+    // group contents. This will highlight potentially a lot more than just
+    // the actual group matches, but is an approximation we'll have to live with
+    // until the above dart:core enhancement is finished.
+    if (highlightOnlyRegExpGroups) {
+      final allGroups = <String>{};
+      for (final m in matchingIndexes) {
+        final groups = m
+            .groups(List<int>.generate(m.groupCount, (index) => index + 1))
+            .map((s) => s ?? '')
+            .where((s) => s.isNotEmpty);
+        allGroups.addAll(groups);
+      }
+      // for highlighting purposes, any substring that matches a known
+      // group match should get highlighted. place longer groups first so
+      // we always greedy match match longer expressions first.
+      final sortedGroups = allGroups.toList()
+        ..sort((a, b) => b.length.compareTo(a.length));
+      final newRegExp = sortedGroups.map(RegExp.escape).join('|');
+      matchingIndexes = DataExplorerStore.getIndexesOfMatches(
+        newRegExp,
+        text,
+        caseSensitive: caseSensitive,
+      );
     }
 
     final spans = <TextSpan>[];
@@ -659,7 +701,7 @@ class HighlightedText extends StatelessWidget {
     for (final m in matchingIndexes) {
       final index = m.start;
 
-      if (start != index) {
+      if (start < index) {
         spans.add(
           TextSpan(
             text: text.substring(start, index),
