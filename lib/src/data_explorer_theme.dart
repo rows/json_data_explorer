@@ -31,6 +31,12 @@ class DataExplorerTheme {
   /// If not set falls back to [valueSearchHighlightTextStyle].
   final TextStyle focusedValueSearchHighlightTextStyle;
 
+  /// Whether or not to highlight only matched groups in the search term regex.
+  /// This is limited right now to highlighting all substrings that match any
+  /// of the matching groups, rather than the exact groups, as dart does not
+  /// yet support providing positions of matched regexp groups.
+  final bool highlightOnlyRegExpGroups;
+
   /// Indentation lines color.
   final Color indentationLineColor;
 
@@ -54,6 +60,7 @@ class DataExplorerTheme {
     TextStyle? valueSearchHighlightTextStyle,
     TextStyle? focusedKeySearchHighlightTextStyle,
     TextStyle? focusedValueSearchHighlightTextStyle,
+    this.highlightOnlyRegExpGroups = false,
     this.indentationLineColor = Colors.grey,
     this.highlightColor,
     this.indentationPadding = 8.0,
@@ -88,6 +95,7 @@ class DataExplorerTheme {
     required this.valueSearchHighlightTextStyle,
     required this.focusedKeySearchNodeHighlightTextStyle,
     required this.focusedValueSearchHighlightTextStyle,
+    required this.highlightOnlyRegExpGroups,
     required this.indentationLineColor,
     required this.highlightColor,
     required this.indentationPadding,
@@ -134,6 +142,7 @@ class DataExplorerTheme {
       fontWeight: FontWeight.bold,
       backgroundColor: Colors.lightGreen,
     ),
+    highlightOnlyRegExpGroups: false,
     indentationLineColor: Colors.grey,
     highlightColor: Colors.black12,
     indentationPadding: 8.0,
@@ -148,6 +157,7 @@ class DataExplorerTheme {
     TextStyle? valueSearchHighlightTextStyle,
     TextStyle? focusedKeySearchNodeHighlightTextStyle,
     TextStyle? focusedValueSearchHighlightTextStyle,
+    bool? highlightOnlyRegExpGroups,
     Color? indentationLineColor,
     Color? highlightColor,
     double? indentationPadding,
@@ -172,6 +182,8 @@ class DataExplorerTheme {
         focusedValueSearchHighlightTextStyle:
             focusedValueSearchHighlightTextStyle ??
                 this.focusedValueSearchHighlightTextStyle,
+        highlightOnlyRegExpGroups:
+            highlightOnlyRegExpGroups ?? this.highlightOnlyRegExpGroups,
       );
 
   @override

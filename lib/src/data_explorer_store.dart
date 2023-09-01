@@ -630,9 +630,26 @@ class DataExplorerStore extends ChangeNotifier {
   /// initially only upper root nodes will be in the list.
   ///
   /// [notifyListeners] is called to notify all registered listeners.
-  Future buildNodes(dynamic jsonObject, {bool areAllCollapsed = false}) async {
+  /// [mapScalarNodeValue] can optionally change scalar values to be a different
+  /// value after construction of the nodes and before they are in the store.
+  Future buildNodes(
+    dynamic jsonObject, {
+    bool areAllCollapsed = false,
+    dynamic Function(NodeViewModelState node)? mapScalarNodeValue,
+  }) async {
     final builtNodes = buildViewModelNodes(jsonObject);
     final flatList = flatten(builtNodes);
+    if (mapScalarNodeValue != null) {
+      for (final n in flatList) {
+        if ((n.value is! Map<String, dynamic>) && (n.value is! List)) {
+          final dynamic newValue = mapScalarNodeValue(n);
+          if ((newValue is Map<String, dynamic>) || (newValue is List)) {
+            throw ArgumentError('mapScalarNodeValue must return a scalar');
+          }
+          n.value = newValue;
+        }
+      }
+    }
 
     _allNodes = UnmodifiableListView(flatList);
     _displayNodes = List.from(flatList);
@@ -655,7 +672,7 @@ class DataExplorerStore extends ChangeNotifier {
 
   void _doSearch() {
     for (final node in _allNodes) {
-      final matchesIndexes = _getSearchTermMatchesIndexes(node.key);
+      final matchesIndexes = getSearchTermMatchesIndexes(node.key);
 
       for (final matchIndex in matchesIndexes) {
         _searchResults.add(
@@ -669,7 +686,7 @@ class DataExplorerStore extends ChangeNotifier {
 
       if (!node.isRoot) {
         final matchesIndexes =
-            _getSearchTermMatchesIndexes(node.value.toString());
+            getSearchTermMatchesIndexes(node.value.toString());
 
         for (final matchIndex in matchesIndexes) {
           _searchResults.add(
@@ -686,14 +703,21 @@ class DataExplorerStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Finds all occurrences of [regexp] in [victim] and retrieves all their
+  /// indexes.
+  static Iterable<RegExpMatch> getIndexesOfMatches(
+    String regexp,
+    String victim, {
+    bool caseSensitive = false,
+  }) {
+    final pattern = RegExp(regexp, caseSensitive: caseSensitive);
+    return pattern.allMatches(victim);
+  }
+
   /// Finds all occurences of [searchTerm] in [victim] and retrieves all their
   /// indexes.
-  Iterable<int> _getSearchTermMatchesIndexes(String victim) {
-    final pattern = RegExp(searchTerm, caseSensitive: false);
-
-    final matches = pattern.allMatches(victim).map((match) => match.start);
-
-    return matches;
+  Iterable<int> getSearchTermMatchesIndexes(String victim) {
+    return getIndexesOfMatches(searchTerm, victim).map((match) => match.start);
   }
 
   /// Expands all the parent nodes of each [SearchResult.node] in

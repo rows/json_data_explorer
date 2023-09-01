@@ -12,9 +12,9 @@ typedef NodeBuilder = Widget Function(
   NodeViewModelState node,
 );
 
-/// Signature for a function that takes a generic value and converts it to a
-/// string.
-typedef Formatter = String Function(dynamic value);
+/// Signature for a function that takes a generic value (associated with a
+/// given node in the model) and converts it to a string.
+typedef Formatter = String Function(NodeViewModelState node, dynamic value);
 
 /// Signature for a function that takes a generic value and the current theme
 /// property value style and returns a [StyleBuilder] that allows the style
@@ -23,16 +23,26 @@ typedef Formatter = String Function(dynamic value);
 /// See also:
 /// * [PropertyStyle]
 typedef StyleBuilder = PropertyOverrides Function(
+  NodeViewModelState node,
   dynamic value,
   TextStyle style,
 );
 
 /// Holds information about a property value style and interaction.
 class PropertyOverrides {
-  final TextStyle style;
+  final TextStyle? style;
   final VoidCallback? onTap;
+  final VoidCallback? onSecondaryTap;
+  final VoidCallback? onLongPress;
+  final MouseCursor? cursor;
 
-  const PropertyOverrides({required this.style, this.onTap});
+  const PropertyOverrides({
+    this.style,
+    this.onTap,
+    this.onSecondaryTap,
+    this.onLongPress,
+    this.cursor,
+  });
 }
 
 /// A widget to display a list of Json nodes.
@@ -263,15 +273,18 @@ class JsonAttribute extends StatelessWidget {
 
     final valueStyle = valueStyleBuilder != null
         ? valueStyleBuilder!.call(
+            node,
             node.value,
             theme.valueTextStyle,
           )
-        : PropertyOverrides(style: theme.valueTextStyle);
+        : const PropertyOverrides();
 
     final hasInteraction = node.isRoot || valueStyle.onTap != null;
 
     return MouseRegion(
-      cursor: hasInteraction ? SystemMouseCursors.click : MouseCursor.defer,
+      cursor: valueStyle.cursor != null
+          ? valueStyle.cursor!
+          : (hasInteraction ? SystemMouseCursors.click : MouseCursor.defer),
       onEnter: (event) {
         node.highlight();
         node.focus();
@@ -291,6 +304,8 @@ class JsonAttribute extends StatelessWidget {
                 }
               }
             : null,
+        onLongPress: valueStyle.onLongPress,
+        onSecondaryTap: valueStyle.onSecondaryTap,
         child: AnimatedBuilder(
           animation: node,
 
@@ -341,11 +356,13 @@ class JsonAttribute extends StatelessWidget {
                             node: node,
                             searchTerm: searchTerm,
                             valueFormatter: valueFormatter,
-                            style: valueStyle.style,
+                            style: valueStyle.style ?? theme.valueTextStyle,
                             searchHighlightStyle:
                                 theme.valueSearchHighlightTextStyle,
                             focusedSearchHighlightStyle:
                                 theme.focusedValueSearchHighlightTextStyle,
+                            highlightOnlyRegExpGroups:
+                                theme.highlightOnlyRegExpGroups,
                           ),
                         ),
                       ),
@@ -414,9 +431,9 @@ class _RootNodeWidget extends StatelessWidget {
 
   String _keyName() {
     if (node.isRoot) {
-      return rootNameFormatter?.call(node.key) ?? '${node.key}:';
+      return rootNameFormatter?.call(node, node.key) ?? '${node.key}:';
     }
-    return propertyNameFormatter?.call(node.key) ?? '${node.key}:';
+    return propertyNameFormatter?.call(node, node.key) ?? '${node.key}:';
   }
 
   /// Gets the index of the focused search match.
@@ -455,13 +472,14 @@ class _RootNodeWidget extends StatelessWidget {
     final focusedSearchMatchIndex =
         context.select<DataExplorerStore, int?>(_getFocusedSearchMatchIndex);
 
-    return _HighlightedText(
+    return HighlightedText(
       text: text,
-      highlightedText: searchTerm,
+      highlightedRegExp: searchTerm,
       style: attributeKeyStyle,
       primaryMatchStyle: theme.focusedKeySearchNodeHighlightTextStyle,
       secondaryMatchStyle: theme.keySearchHighlightTextStyle,
       focusedSearchMatchIndex: focusedSearchMatchIndex,
+      highlightOnlyRegExpGroups: theme.highlightOnlyRegExpGroups,
     );
   }
 }
@@ -474,6 +492,7 @@ class _PropertyNodeWidget extends StatelessWidget {
   final TextStyle style;
   final TextStyle searchHighlightStyle;
   final TextStyle focusedSearchHighlightStyle;
+  final bool highlightOnlyRegExpGroups;
 
   const _PropertyNodeWidget({
     Key? key,
@@ -483,6 +502,7 @@ class _PropertyNodeWidget extends StatelessWidget {
     required this.style,
     required this.searchHighlightStyle,
     required this.focusedSearchHighlightStyle,
+    required this.highlightOnlyRegExpGroups,
   }) : super(key: key);
 
   /// Gets the index of the focused search match.
@@ -509,7 +529,8 @@ class _PropertyNodeWidget extends StatelessWidget {
       (store) => store.searchResults.isNotEmpty,
     );
 
-    final text = valueFormatter?.call(node.value) ?? node.value.toString();
+    final text =
+        valueFormatter?.call(node, node.value) ?? node.value.toString();
 
     if (!showHighlightedText) {
       return Text(text, style: style);
@@ -518,13 +539,14 @@ class _PropertyNodeWidget extends StatelessWidget {
     final focusedSearchMatchIndex =
         context.select<DataExplorerStore, int?>(_getFocusedSearchMatchIndex);
 
-    return _HighlightedText(
+    return HighlightedText(
       text: text,
-      highlightedText: searchTerm,
+      highlightedRegExp: searchTerm,
       style: style,
       primaryMatchStyle: focusedSearchHighlightStyle,
       secondaryMatchStyle: searchHighlightStyle,
       focusedSearchMatchIndex: focusedSearchMatchIndex,
+      highlightOnlyRegExpGroups: highlightOnlyRegExpGroups,
     );
   }
 }
@@ -599,11 +621,13 @@ class _Indentation extends StatelessWidget {
   }
 }
 
-/// Highlights found occurrences of [highlightedText] with [highlightedStyle]
+/// Highlights found occurrences of [highlightedRegExp] with [highlightedStyle]
 /// in [text].
-class _HighlightedText extends StatelessWidget {
+class HighlightedText extends StatelessWidget {
   final String text;
-  final String highlightedText;
+  final String highlightedRegExp;
+  final bool caseSensitive;
+  final bool highlightOnlyRegExpGroups;
 
   // The default style when the text or part of it is not highlighted.
   final TextStyle style;
@@ -617,10 +641,12 @@ class _HighlightedText extends StatelessWidget {
   // The index of the focused search match.
   final int? focusedSearchMatchIndex;
 
-  const _HighlightedText({
+  const HighlightedText({
     Key? key,
     required this.text,
-    required this.highlightedText,
+    required this.highlightedRegExp,
+    this.caseSensitive = false,
+    this.highlightOnlyRegExpGroups = false,
     required this.style,
     required this.primaryMatchStyle,
     required this.secondaryMatchStyle,
@@ -629,21 +655,54 @@ class _HighlightedText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lowerCaseText = text.toLowerCase();
-    final lowerCaseQuery = highlightedText.toLowerCase();
-
-    if (highlightedText.isEmpty || !lowerCaseText.contains(lowerCaseQuery)) {
+    var matchingIndexes = highlightedRegExp.isEmpty
+        ? const Iterable<RegExpMatch>.empty()
+        : DataExplorerStore.getIndexesOfMatches(
+            highlightedRegExp,
+            text,
+            caseSensitive: caseSensitive,
+          );
+    if (matchingIndexes.isEmpty) {
       return Text(text, style: style);
+    }
+
+    // It seems that positions of matching groups are not available for now
+    // (see https://github.com/dart-lang/sdk/issues/45486). We have to thus
+    // take a more complex approach if we only want to highlight group contents
+    // by first finding all matches, and then getting all of the group contents,
+    // and finding all matches anywhere in the string that could match these
+    // group contents. This will highlight potentially a lot more than just
+    // the actual group matches, but is an approximation we'll have to live with
+    // until the above dart:core enhancement is finished.
+    if (highlightOnlyRegExpGroups) {
+      final allGroups = <String>{};
+      for (final m in matchingIndexes) {
+        final groups = m
+            .groups(List<int>.generate(m.groupCount, (index) => index + 1))
+            .map((s) => s ?? '')
+            .where((s) => s.isNotEmpty);
+        allGroups.addAll(groups);
+      }
+      // for highlighting purposes, any substring that matches a known
+      // group match should get highlighted. place longer groups first so
+      // we always greedy match match longer expressions first.
+      final sortedGroups = allGroups.toList()
+        ..sort((a, b) => b.length.compareTo(a.length));
+      final newRegExp = sortedGroups.map(RegExp.escape).join('|');
+      matchingIndexes = DataExplorerStore.getIndexesOfMatches(
+        newRegExp,
+        text,
+        caseSensitive: caseSensitive,
+      );
     }
 
     final spans = <TextSpan>[];
     var start = 0;
 
-    while (true) {
-      var index = lowerCaseText.indexOf(lowerCaseQuery, start);
-      index = index >= 0 ? index : text.length;
+    for (final m in matchingIndexes) {
+      final index = m.start;
 
-      if (start != index) {
+      if (start < index) {
         spans.add(
           TextSpan(
             text: text.substring(start, index),
@@ -658,13 +717,22 @@ class _HighlightedText extends StatelessWidget {
 
       spans.add(
         TextSpan(
-          text: text.substring(index, index + highlightedText.length),
+          text: text.substring(index, m.end),
           style: index == focusedSearchMatchIndex
               ? primaryMatchStyle
               : secondaryMatchStyle,
         ),
       );
-      start = index + highlightedText.length;
+      start = m.end;
+    }
+
+    if (start != text.length) {
+      spans.add(
+        TextSpan(
+          text: text.substring(start),
+          style: style,
+        ),
+      );
     }
 
     return Text.rich(

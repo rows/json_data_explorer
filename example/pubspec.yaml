@@ -13,13 +13,13 @@ dependencies:
     path: ../
 
   http: ^0.13.4
-  google_fonts: ^2.3.1
+  google_fonts: ^4.0.4
   url_launcher: ^6.0.20
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  rows_lint: 0.1.0
+  rows_lint: ^0.1.1
 
 flutter:
   uses-material-design: true

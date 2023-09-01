@@ -114,15 +114,15 @@ void main() {
       ..addScenario(
         'Name formatters',
         buildWidget(
-          rootNameFormatter: (dynamic name) => '$name',
-          propertyNameFormatter: (dynamic name) => '$name =',
-          valueFormatter: (dynamic value) => '"$value"',
+          rootNameFormatter: (dynamic node, dynamic name) => '$name',
+          propertyNameFormatter: (dynamic node, dynamic name) => '$name =',
+          valueFormatter: (dynamic node, dynamic value) => '"$value"',
         ),
       )
       ..addScenario(
         'Value style builder',
         buildWidget(
-          valueStyleBuilder: (dynamic value, style) {
+          valueStyleBuilder: (node, dynamic value, style) {
             final isInt = int.tryParse(value.toString());
             return PropertyOverrides(
               style: isInt != null

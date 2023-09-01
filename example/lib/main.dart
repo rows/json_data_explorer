@@ -254,11 +254,11 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                         : const SizedBox(),
 
                     /// Creates a custom format for classes and array names.
-                    rootNameFormatter: (dynamic name) => '$name',
+                    rootNameFormatter: (dynamic node, dynamic name) => '$name',
 
                     /// Dynamically changes the property value style and
                     /// interaction when an URL is detected.
-                    valueStyleBuilder: (dynamic value, style) {
+                    valueStyleBuilder: (node, dynamic value, style) {
                       final isUrl = _valueIsUrl(value);
                       return PropertyOverrides(
                         style: isUrl
@@ -267,6 +267,12 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                               )
                             : style,
                         onTap: isUrl ? () => _launchUrl(value as String) : null,
+                        onSecondaryTap: () {
+                          print('onSecondaryTap: ${node.key}: $value');
+                        },
+                        onLongPress: () {
+                          print('onLongPress: ${node.key}: $value');
+                        },
                       );
                     },
 
