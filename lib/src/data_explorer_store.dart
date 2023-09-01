@@ -630,9 +630,26 @@ class DataExplorerStore extends ChangeNotifier {
   /// initially only upper root nodes will be in the list.
   ///
   /// [notifyListeners] is called to notify all registered listeners.
-  Future buildNodes(dynamic jsonObject, {bool areAllCollapsed = false}) async {
+  /// [mapScalarNodeValue] can optionally change scalar values to be a different
+  /// value after construction of the nodes and before they are in the store.
+  Future buildNodes(
+    dynamic jsonObject, {
+    bool areAllCollapsed = false,
+    dynamic Function(NodeViewModelState node)? mapScalarNodeValue,
+  }) async {
     final builtNodes = buildViewModelNodes(jsonObject);
     final flatList = flatten(builtNodes);
+    if (mapScalarNodeValue != null) {
+      for (final n in flatList) {
+        if ((n.value is! Map<String, dynamic>) && (n.value is! List)) {
+          final dynamic newValue = mapScalarNodeValue(n);
+          if ((newValue is Map<String, dynamic>) || (newValue is List)) {
+            throw ArgumentError('mapScalarNodeValue must return a scalar');
+          }
+          n.value = newValue;
+        }
+      }
+    }
 
     _allNodes = UnmodifiableListView(flatList);
     _displayNodes = List.from(flatList);
