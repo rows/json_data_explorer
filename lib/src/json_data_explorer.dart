@@ -12,9 +12,9 @@ typedef NodeBuilder = Widget Function(
   NodeViewModelState node,
 );
 
-/// Signature for a function that takes a generic value and converts it to a
-/// string.
-typedef Formatter = String Function(dynamic value);
+/// Signature for a function that takes a generic value (associated with a
+/// given node in the model) and converts it to a string.
+typedef Formatter = String Function(NodeViewModelState node, dynamic value);
 
 /// Signature for a function that takes a generic value and the current theme
 /// property value style and returns a [StyleBuilder] that allows the style
@@ -431,9 +431,9 @@ class _RootNodeWidget extends StatelessWidget {
 
   String _keyName() {
     if (node.isRoot) {
-      return rootNameFormatter?.call(node.key) ?? '${node.key}:';
+      return rootNameFormatter?.call(node, node.key) ?? '${node.key}:';
     }
-    return propertyNameFormatter?.call(node.key) ?? '${node.key}:';
+    return propertyNameFormatter?.call(node, node.key) ?? '${node.key}:';
   }
 
   /// Gets the index of the focused search match.
@@ -529,7 +529,8 @@ class _PropertyNodeWidget extends StatelessWidget {
       (store) => store.searchResults.isNotEmpty,
     );
 
-    final text = valueFormatter?.call(node.value) ?? node.value.toString();
+    final text =
+        valueFormatter?.call(node, node.value) ?? node.value.toString();
 
     if (!showHighlightedText) {
       return Text(text, style: style);

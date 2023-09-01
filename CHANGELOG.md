@@ -1,5 +1,6 @@
 ## 0.3.0
 
+* BREAKING: formatters such as `valueFormatter` now takes node in addition to value
 * BREAKING: `valueStyleBuilder` now takes node in addition to value
 * `style` in `PropertyOverrides` is now optional
 * `PropertyOverrides` can optionally specify `onSecondaryTap`, `onLongPress` and a mouse `cursor`

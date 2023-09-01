@@ -114,9 +114,9 @@ void main() {
       ..addScenario(
         'Name formatters',
         buildWidget(
-          rootNameFormatter: (dynamic name) => '$name',
-          propertyNameFormatter: (dynamic name) => '$name =',
-          valueFormatter: (dynamic value) => '"$value"',
+          rootNameFormatter: (dynamic node, dynamic name) => '$name',
+          propertyNameFormatter: (dynamic node, dynamic name) => '$name =',
+          valueFormatter: (dynamic node, dynamic value) => '"$value"',
         ),
       )
       ..addScenario(

@@ -254,7 +254,7 @@ class _DataExplorerPageState extends State<DataExplorerPage> {
                         : const SizedBox(),
 
                     /// Creates a custom format for classes and array names.
-                    rootNameFormatter: (dynamic name) => '$name',
+                    rootNameFormatter: (dynamic node, dynamic name) => '$name',
 
                     /// Dynamically changes the property value style and
                     /// interaction when an URL is detected.

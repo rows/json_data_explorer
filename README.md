@@ -164,7 +164,7 @@ can be changed with a formatter:
 ```dart
 JsonDataExplorer(
   nodes: state.displayNodes,
-  propertyNameFormatter: (name) => '$name ->',
+  propertyNameFormatter: (node, name) => '$name ->',
 )
 ```
 
